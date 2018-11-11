@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+  <head>
+    <title>real quick -- okay</title>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:title" content="grass.business ¯\_(ツ)_/¯">
+    <meta property="og:site_name" content="grass.business">
+    <meta property="og:description" content="I would describe it as a patch of digital grass.">
+    <meta property="og:url" content="http://grass.business/">
+    <meta property="og:image" content="http://grass.business/snap.png">
+    <meta property="og:image:width" content="350">
+    <meta property="og:image:height" content="350">
+    <meta property="og:type" content="music.song">
+    <meta property="music:duration" content="420">
+    <meta property="music:album" content="grass">
+    <meta property="music:album:disc" content="420">
+    <meta property="music:album:track" content="69">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/92/three.js"></script>
+    <script src="/static/js/fish-cake.min.js"></script>
+    <script>
+      var socket = new WebSocket("ws://localhost:8000/ws");
+
+      socket.onopen = function (a, b, c) {
+        console.log("OPENED!", a, b, c);
+        socket.send("Yea yea yea");
+
+        socket.addEventListener('message', function (ev) {
+          console.log("MESSAGE:", ev);
+        });
+
+        socket.addEventListener("close", function () {
+          console.log("CLOSED!");
+        });
+      }
+
+    </script>
+  </head>
+  <body>
+
+    <canvas width="200" height="200" id="you-know"></canvas>
+    <script>
+      var app = new svv.PlanetApp({
+        id: "you-know",
+      });
+
+      app.setup();
+
+      (function loop() {
+        app.update();
+        app.draw();
+        requestAnimationFrame(loop);
+      }());
+    </script>
+  </body>
+</html>
