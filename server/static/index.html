@@ -21,39 +21,12 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/92/three.js"></script>
     <script src="/static/js/fish-cake.min.js"></script>
-    <script>
-      var socket = new WebSocket("ws://localhost:8000/ws");
-
-      socket.onopen = function (a, b, c) {
-        console.log("OPENED!", a, b, c);
-        socket.send("Yea yea yea");
-
-        socket.addEventListener('message', function (ev) {
-          console.log("MESSAGE:", ev);
-        });
-
-        socket.addEventListener("close", function () {
-          console.log("CLOSED!");
-        });
-      }
-
-    </script>
   </head>
   <body>
 
-    <canvas width="200" height="200" id="you-know"></canvas>
+    <canvas width="800" height="800" id="you-know"></canvas>
     <script>
-      var app = new svv.PlanetApp({
-        id: "you-know",
-      });
-
-      app.setup();
-
-      (function loop() {
-        app.update();
-        app.draw();
-        requestAnimationFrame(loop);
-      }());
+      svv.lezgo("you-know");
     </script>
   </body>
 </html>

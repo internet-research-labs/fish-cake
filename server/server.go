@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"html/template"
@@ -45,6 +46,22 @@ func SocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Update the user about the world
+func WorldHandler(w http.ResponseWriter, r *http.Request) {
+	res, err := json.Marshal(World{
+		Buildings: make([]Position, 0),
+		Thickness: 1.0,
+		Radius:    20.0,
+	})
+
+	if err != nil {
+		w.Write([]byte("sicko mode"))
+		return
+	}
+
+	w.Write([]byte(res))
+}
+
 // Things that the game needs to keep track of
 type Server struct {
 	zones   []Zone
@@ -59,6 +76,8 @@ func (self *Server) Listen(port int) {
 	r := mux.NewRouter().StrictSlash(true)
 	r.HandleFunc("/", GameHandler)
 	r.HandleFunc("/ws", SocketHandler)
+
+	r.HandleFunc("/world", WorldHandler)
 
 	r.PathPrefix(STATIC_DIR).Handler(http.StripPrefix(STATIC_DIR, http.FileServer(http.Dir("../server"+STATIC_DIR))))
 

@@ -18,6 +18,8 @@ export class PlanetApp {
       far: 200,
     };
 
+    this.needsUpdate = false;
+
     // Scene
     this.scene = new THREE.Scene();
 
@@ -46,11 +48,11 @@ export class PlanetApp {
     this.scene.add(light3);
 
     this.setupCamera();
+    this.setupWorld();
+
 
     let a = 1.5;
     let [x, y, z] = [a-0.5, a, -a];
-    this.camera.position.set(x, y, z);
-    this.camera.lookAt(x, y, -z);
     this.resize(this.width, this.height);
   }
 
@@ -79,9 +81,21 @@ export class PlanetApp {
     }
   }
 
-  update(params) {
+
+  setupWorld() {
+    let geometry = new THREE.TorusGeometry(4.0, 1.0, 16, 100);
+    let material = new THREE.MeshPhongMaterial({
+      color: 0xCCCCCC,
+      emissive: 0x111111,
+      specular: 0x444444,
+      shininess: 90.0,
+    });
+    this.scene.add(new THREE.Mesh(geometry, material));
   }
 
+  /**
+   * Setup Camera
+   */
   setupCamera() {
     this.camera = new THREE.PerspectiveCamera(
       this.app.view_angle,
@@ -89,6 +103,18 @@ export class PlanetApp {
       this.app.near,
       this.app.far
     );
+
+    this.camera.position.set(0.0, 0.0, 40.0);
+    this.camera.lookAt(0, 0, 0);
+  }
+
+  /**
+   * Update
+   */
+  update(params) {
+    if (this.needsUpdate) {
+      this.needsUpdate = false;
+    }
   }
 
   resize(width, height) {
