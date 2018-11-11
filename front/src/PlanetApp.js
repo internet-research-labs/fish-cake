@@ -83,14 +83,17 @@ export class PlanetApp {
 
 
   setupWorld() {
-    let geometry = new THREE.TorusGeometry(4.0, 1.0, 16, 100);
+    let geometry = new THREE.CylinderGeometry(1.0, 1.0, 16, 100);
     let material = new THREE.MeshPhongMaterial({
       color: 0xCCCCCC,
       emissive: 0x111111,
       specular: 0x444444,
       shininess: 90.0,
     });
-    this.scene.add(new THREE.Mesh(geometry, material));
+    let mesh = new THREE.Mesh(geometry, material);
+    mesh.rotation.x = Math.PI/2.0;
+    mesh.rotation.z = Math.PI/2.0;
+    this.scene.add(mesh);
   }
 
   /**
