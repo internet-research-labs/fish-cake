@@ -33,26 +33,14 @@ func RandomBuildings(n int) []WorldCoord {
 
 	buildings := make([]WorldCoord, 0)
 
-	/*
-		for i := 0; i < n; i++ {
+	for i := 0; i < n; i++ {
 
-			p := WorldCoord{
-				Theta: r.Float64() * 2 * math.Pi,
-				Fi:    r.Float64() * 2 * math.Pi,
-			}
-
-			buildings[i] = p
+		p := WorldCoord{
+			Theta: r.Float64() * 2 * math.Pi,
+			Fi:    r.Float64() * 2 * math.Pi,
 		}
-	*/
 
-	for i := 0; i < 20; i++ {
-		for j := 0; j < 10; j++ {
-			p := WorldCoord{
-				Theta: float64(i) / 20.0 * 2 * math.Pi,
-				Fi:    float64(j) / 10.0 * 2 * math.Pi,
-			}
-			buildings = append(buildings, p)
-		}
+		buildings = append(buildings, p)
 	}
 
 	return buildings

@@ -130,17 +130,15 @@ export class PlanetApp {
       height = 3;
 
       let {theta, fi} = v;
-      // fi = 0.0;
-      theta = Math.PI/2.0;
 
 
-      let p = this.coord(theta, fi, 4.0);
+      let p = this.coord(theta, fi, 1.0);
       let q = this.coord(theta, fi, 6.0);
-      let r = this.coord(theta+0.1, fi, 4.0);
+      let r = this.coord(theta+0.1, fi, 1.0);
       let b = sub(q, p);
       let c = sub(r, p);
 
-      let f = new THREE.Vector3(b[0], b[1], b[2]);
+      let f = new THREE.Vector3(c[0], c[1], c[2]);
       f.normalize();
 
       let o = new THREE.Mesh(
@@ -148,20 +146,10 @@ export class PlanetApp {
         material,
       );
 
-      console.log(r);
       o.position.set(p[0], p[1], p[2]);
+      o.setRotationFromAxisAngle(f, fi-Math.PI/2.0);
 
       this.scene.add(o);
-
-      /*
-      this.scene.add(new THREE.ArrowHelper(
-        f,
-        o.position,
-        4.3,
-        0x000000,
-      ));
-      */
-
     });
   }
 
