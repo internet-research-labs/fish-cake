@@ -5,6 +5,6 @@ import (
 )
 
 func main() {
-	s := server.Server{}
+	s := server.NewRandomServer(10)
 	s.Listen(8080)
 }

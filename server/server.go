@@ -2,12 +2,14 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"html/template"
 	"log"
 	"math"
 	"net/http"
+	"path"
 	"time"
 )
 
@@ -15,12 +17,6 @@ const (
 	STATIC_DIR = "/static/"
 	PORT       = "8080"
 )
-
-// Hub
-type GameHub struct {
-	world   World
-	Updates chan Ship
-}
 
 // GameHamndler
 func GameHandler(w http.ResponseWriter, r *http.Request) {
@@ -75,38 +71,51 @@ func SocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Update the user about the world
-func WorldHandler(w http.ResponseWriter, r *http.Request) {
-	res, err := json.Marshal(RandomWorld(100))
-
-	if err != nil {
-		w.Write([]byte("sicko mode"))
-		return
-	}
-
-	w.Write([]byte(res))
-}
-
-// Things that the game needs to keep track of
+// Server holds local zone game information
 type Server struct {
 	zones   []Zone
 	players []uint
 	bots    []uint
+	world   World
 }
 
+// NewRandomServer returns a new server with a random world
+func NewRandomServer(n int) Server {
+	return Server{
+		zones:   nil,
+		players: nil,
+		bots:    nil,
+		world:   RandomWorld(n),
+	}
+}
+
+// upgrader adds websocket support
 var upgrader = websocket.Upgrader{}
+
+// StaticHandler responds to requests by path
+func StaticHandler(res http.ResponseWriter, req *http.Request) {
+	fname := path.Base(req.URL.Path)
+	http.ServeFile(res, req, "../server/static/"+fname)
+}
 
 // Listen for connections
 func (self *Server) Listen(port int) {
 	r := mux.NewRouter().StrictSlash(true)
 	r.HandleFunc("/", GameHandler)
 	r.HandleFunc("/ws", SocketHandler)
-
-	r.HandleFunc("/world", WorldHandler)
+	r.HandleFunc("/favicon.ico", StaticHandler)
+	r.HandleFunc("/world", func(w http.ResponseWriter, r *http.Request) {
+		fs, err := json.Marshal(self.world)
+		if err != nil {
+			w.Write([]byte("sicko mode"))
+			return
+		}
+		w.Write([]byte(fs))
+	})
 
 	r.PathPrefix(STATIC_DIR).Handler(http.StripPrefix(STATIC_DIR, http.FileServer(http.Dir("../server"+STATIC_DIR))))
 
 	log.Println("nevermind again -- bia next time")
 	log.Println(STATIC_DIR)
-	log.Fatal(http.ListenAndServe(":8000", r))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), r))
 }

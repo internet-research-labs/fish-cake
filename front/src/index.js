@@ -19,7 +19,7 @@ function lezgo(id) {
   app.setup();
 
   // Get live stream
-  let socket = new WebSocket("ws://localhost:8000/ws");
+  let socket = new WebSocket("ws://"+location.host+"/ws");
 
   fetch("/world").then((resp) => {
     return resp.json();
@@ -27,9 +27,8 @@ function lezgo(id) {
     app.updateWorld(world);
   });
 
-  socket.onopen = function (a, b, c) {
-    console.log("OPENED!", a, b, c);
-
+  socket.onopen = function () {
+    // Message
     socket.addEventListener('message', function (ev) {
       let data = JSON.parse(ev.data);
       let ships = data.ships;
@@ -37,6 +36,7 @@ function lezgo(id) {
       app.needsUpdate = true;
     });
 
+    // Close
     socket.addEventListener("close", function () {
       console.log("CLOSED!");
     });

@@ -142,7 +142,8 @@ export class PlanetApp {
       f.normalize();
 
       let o = new THREE.Mesh(
-        new THREE.ConeGeometry(0.25, height),
+        // new THREE.ConeGeometry(0.25, height),
+        new THREE.BoxGeometry(0.3, height, 0.3),
         material,
       );
 
