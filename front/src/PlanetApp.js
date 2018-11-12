@@ -1,5 +1,7 @@
 import * as THREE from 'THREE';
 
+import {sub, cross} from './math3.js';
+
 // Return an instance of wavvey app
 export class PlanetApp {
   constructor(params) {
@@ -8,11 +10,12 @@ export class PlanetApp {
     this.app = {};
     this.width = this.el.offsetWidth;
     this.height = this.el.offsetHeight;
+    this.state = params.state;
   }
 
   setup() {
     this.app = {
-      view_angle: 50,
+      view_angle: 67,
       aspect: this.width/this.height,
       near: 0.01,
       far: 200,
@@ -48,12 +51,16 @@ export class PlanetApp {
     this.scene.add(light3);
 
     this.setupCamera();
-    this.setupWorld();
 
 
     let a = 1.5;
     let [x, y, z] = [a-0.5, a, -a];
     this.resize(this.width, this.height);
+
+
+    // Empty amount of ships
+    this.ships = new Map();
+
   }
 
   // Return object containing all the necessary event handlers
@@ -82,18 +89,80 @@ export class PlanetApp {
   }
 
 
+  // Construct the torus
   setupWorld() {
-    let geometry = new THREE.CylinderGeometry(1.0, 1.0, 16, 100);
+  }
+
+  coord(t, f, float) {
+    let {radius, depth} = this.params;
+    depth += float || 0.0;
+    return [
+      (radius+depth*Math.cos(f))*Math.cos(t),
+      depth*Math.sin(f),
+      (radius+depth*Math.cos(f))*Math.sin(t),
+    ];
+  }
+
+  // Update world from a world object
+  updateWorld(world) {
+
+    this.params = {
+      radius: world.radius,
+      depth: world.thickness,
+    };
+
+    let geometry = new THREE.TorusGeometry(this.params.radius, this.params.depth, 16, 100);
     let material = new THREE.MeshPhongMaterial({
       color: 0xCCCCCC,
       emissive: 0x111111,
       specular: 0x444444,
       shininess: 90.0,
     });
+
     let mesh = new THREE.Mesh(geometry, material);
     mesh.rotation.x = Math.PI/2.0;
     mesh.rotation.z = Math.PI/2.0;
     this.scene.add(mesh);
+
+    world.buildings.forEach((v) => {
+
+      let height = 3*Math.random() + 0.1;
+      height = 3;
+
+      let {theta, fi} = v;
+      // fi = 0.0;
+      theta = Math.PI/2.0;
+
+
+      let p = this.coord(theta, fi, 4.0);
+      let q = this.coord(theta, fi, 6.0);
+      let r = this.coord(theta+0.1, fi, 4.0);
+      let b = sub(q, p);
+      let c = sub(r, p);
+
+      let f = new THREE.Vector3(b[0], b[1], b[2]);
+      f.normalize();
+
+      let o = new THREE.Mesh(
+        new THREE.ConeGeometry(0.25, height),
+        material,
+      );
+
+      console.log(r);
+      o.position.set(p[0], p[1], p[2]);
+
+      this.scene.add(o);
+
+      /*
+      this.scene.add(new THREE.ArrowHelper(
+        f,
+        o.position,
+        4.3,
+        0x000000,
+      ));
+      */
+
+    });
   }
 
   /**
@@ -107,19 +176,66 @@ export class PlanetApp {
       this.app.far
     );
 
-    this.camera.position.set(0.0, 0.0, 40.0);
+    // Camera
+    this.camera.position.set(0.0, 30.0, 0.0);
     this.camera.lookAt(0, 0, 0);
   }
 
-  /**
-   * Update
-   */
+  getShipObject(id) {
+    let o = this.scene.getObjectByName(id);
+
+    if (o == undefined) {
+      o = new THREE.Mesh(
+        new THREE.BoxGeometry(0.5, 0.5, 0.5),
+        new THREE.MeshBasicMaterial({color:0x000000}),
+      );
+      let a = Math.random()*2*Math.PI;
+      let b = Math.random()*2*Math.PI;
+      let c = Math.random()*2*Math.PI;
+      o.rotation.set(a, b, c);
+    }
+
+    return o;
+  }
+
+  // Update positions of ships from a map
+  updateShips(ships) {
+    for (let id in ships) {
+      let s = ships[id];
+      let o = this.getShipObject("SHIP:"+id);
+
+      if (!this.ships.has(id)) {
+        o.name = "SHIP:"+id;
+        this.scene.add(o);
+      }
+
+      let [x, y, z] = this.coord(s.coord.theta, s.coord.fi, 1.0);
+
+      o.position.set(x, y, z);
+      this.ships.set(id, s);
+    }
+  }
+
+  // Update
   update(params) {
     if (this.needsUpdate) {
       this.needsUpdate = false;
     }
+
+    let t = new Date()/1000.0;
+    let r = 40.0;
+
+    let x = r*Math.cos(t);
+    let y = 0.0;
+    let z = r*Math.sin(t);
+
+    y = 40.0;
+
+    this.camera.position.set(x, y, z);
+    this.camera.lookAt(0.0, 0.0, 0.0);
   }
 
+  // Resize canvas and set camera straight
   resize(width, height) {
     this.width = width;
     this.height = height;
@@ -127,11 +243,10 @@ export class PlanetApp {
     this.camera.aspect = this.app.aspect;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(this.width, this.height);
-    // this.composer.setSize(this.width, this.height);
   }
 
+  // Draw
   draw() {
-    // this.composer.render(1.05);
     this.renderer.render(this.scene, this.camera);
   }
 }

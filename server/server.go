@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 	"html/template"
 	"log"
+	"math"
 	"net/http"
 	"time"
 )
@@ -15,7 +16,13 @@ const (
 	PORT       = "8080"
 )
 
-// SocketHandler
+// Hub
+type GameHub struct {
+	world   World
+	Updates chan Ship
+}
+
+// GameHamndler
 func GameHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := template.Must(template.ParseFiles("../server/static/index.html"))
 	w.WriteHeader(http.StatusOK)
@@ -26,6 +33,16 @@ func GameHandler(w http.ResponseWriter, r *http.Request) {
 func SocketHandler(w http.ResponseWriter, r *http.Request) {
 	conn, _ := upgrader.Upgrade(w, r, nil)
 	defer conn.Close()
+
+	s0 := Ship{
+		Id:    0,
+		Coord: WorldCoord{math.Pi / 4.0, 0.0},
+	}
+
+	s1 := Ship{
+		Id:    1,
+		Coord: WorldCoord{-math.Pi / 4.0, 0.0},
+	}
 
 	// Read loop
 	go func() {
@@ -39,20 +56,28 @@ func SocketHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(13 * time.Millisecond)
 
 	for _ = range ticker.C {
-		conn.WriteMessage(1, []byte("whatever"))
+		s0.Coord.Fi = math.Mod(s0.Coord.Fi+0.05, 2*math.Pi)
+		s1.Coord.Fi = math.Mod(s1.Coord.Fi-0.05, 2*math.Pi)
+		ships := make(map[uint64]Ship)
+		ships[s0.Id] = s0
+		ships[s1.Id] = s1
+		res, err := json.Marshal(World{
+			Ships:     ships,
+			Radius:    10.0,
+			Thickness: 1.0,
+		})
+		if err == nil {
+			conn.WriteMessage(1, []byte(res))
+		}
 	}
 }
 
 // Update the user about the world
 func WorldHandler(w http.ResponseWriter, r *http.Request) {
-	res, err := json.Marshal(World{
-		Buildings: make([]Position, 0),
-		Thickness: 1.0,
-		Radius:    20.0,
-	})
+	res, err := json.Marshal(RandomWorld(100))
 
 	if err != nil {
 		w.Write([]byte("sicko mode"))
