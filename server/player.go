@@ -17,3 +17,8 @@ type Player struct {
 	channel    chan Ship
 	side       uint
 }
+
+func (self *Player) Tick() {
+	self.ship.Coord.Fi += 0.1
+	self.channel <- self.ship
+}

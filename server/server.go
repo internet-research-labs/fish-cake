@@ -106,7 +106,7 @@ func StaticHandler(res http.ResponseWriter, req *http.Request) {
 
 // Listen for connections
 func (self *Server) Listen(port int) {
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(23 * time.Millisecond)
 
 	r := mux.NewRouter().StrictSlash(true)
 	r.HandleFunc("/", GameHandler)
@@ -125,13 +125,32 @@ func (self *Server) Listen(port int) {
 
 	r.PathPrefix(STATIC_DIR).Handler(http.StripPrefix(STATIC_DIR, http.FileServer(http.Dir("../server"+STATIC_DIR))))
 
+	// Channel of updates
+	update_clients := make(chan Ship)
+
+	// Update all players on a time
 	go func() {
 		for _ = range ticker.C {
-			for k, v := range self.players {
-				v.ship.Coord.Theta += 0.1
-				// XXX: ADD UPDATE TO HUB HERE
+			for _, v := range self.players {
+				v.Tick()
+				update_clients <- v.ship
 			}
-			panic("ADD UPDATE TO HUB HERE")
+		}
+	}()
+
+	//
+	go func() {
+		for s := range update_clients {
+			w := World{
+				nil,
+				map[uint64]Ship{s.Id: s},
+				-1.0,
+				-1.0,
+			}
+			encoded, _ := json.Marshal(w)
+			for _, v := range self.players {
+				v.connection.WriteMessage(1, []byte(encoded))
+			}
 		}
 	}()
 
