@@ -17,6 +17,21 @@ type Ship struct {
 	Coord WorldCoord `json:"coord"`
 }
 
+// NewRandomShip returns a new ship with a random id
+func NewRandomShip() Ship {
+
+	s := rand.NewSource(time.Now().UnixNano())
+	r := rand.New(s)
+
+	return Ship{
+		Id: r.Uint64(),
+		Coord: WorldCoord{
+			Theta: r.Float64() * 2 * math.Pi,
+			Fi:    0.0,
+		},
+	}
+}
+
 // The world is a torus
 type World struct {
 	Buildings []WorldCoord    `json:"buildings"`

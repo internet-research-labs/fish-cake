@@ -7,7 +7,6 @@ import (
 	"github.com/gorilla/websocket"
 	"html/template"
 	"log"
-	"math"
 	"net/http"
 	"path"
 	"time"
@@ -25,65 +24,72 @@ func GameHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, "ok")
 }
 
-// GameHandler
-func SocketHandler(w http.ResponseWriter, r *http.Request) {
-	conn, _ := upgrader.Upgrade(w, r, nil)
-	defer conn.Close()
-
-	s0 := Ship{
-		Id:    0,
-		Coord: WorldCoord{math.Pi / 4.0, 0.0},
-	}
-
-	s1 := Ship{
-		Id:    1,
-		Coord: WorldCoord{-math.Pi / 4.0, 0.0},
-	}
-
-	// Read loop
-	go func() {
-		for {
-			t, m, e := conn.ReadMessage()
-			if e != nil {
-				return
-			}
-			log.Println(t, m, e)
-			log.Println("you might ask yourself")
-		}
-	}()
-
-	ticker := time.NewTicker(13 * time.Millisecond)
-
-	for _ = range ticker.C {
-		s0.Coord.Fi = math.Mod(s0.Coord.Fi+0.05, 2*math.Pi)
-		s1.Coord.Fi = math.Mod(s1.Coord.Fi-0.05, 2*math.Pi)
-		ships := make(map[uint64]Ship)
-		ships[s0.Id] = s0
-		ships[s1.Id] = s1
-		res, err := json.Marshal(World{
-			Ships:     ships,
-			Radius:    10.0,
-			Thickness: 1.0,
-		})
-		if err == nil {
-			conn.WriteMessage(1, []byte(res))
-		}
-	}
-}
-
 // Server holds local zone game information
 type Server struct {
 	zones   []Zone
-	players []uint
+	players map[uint64]*Player
 	bots    []uint
 	world   World
+}
+
+// SocketHandler returns a handler function for gorilla that adds a new ship
+func (self *Server) SocketHandler() func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		// Upgrade to a websocket connection
+		conn, _ := upgrader.Upgrade(w, r, nil)
+
+		// Create a new random ship
+		player := Player{
+			ip:         "whatever",
+			ship:       NewRandomShip(),
+			connection: conn,
+			channel:    make(chan Ship),
+		}
+
+		// Add player
+		self.players[player.ship.Id] = &player
+
+		// It doesn't have to be this hard
+		defer func() {
+			log.Println("Closing connection:", player.ship.Id)
+			delete(self.players, player.ship.Id)
+			conn.Close()
+		}()
+
+		log.Println("New connection:", player)
+
+		// READ LOOP
+		go func() {
+			for {
+				t, m, e := conn.ReadMessage()
+				if e != nil {
+					log.Println("Error:", e, t, m)
+					close(player.channel)
+					return
+				} else {
+					log.Println("Message:", t, m)
+				}
+			}
+		}()
+
+		// Message
+		for s := range player.channel {
+			m, e := json.Marshal(s)
+			if e != nil {
+				conn.WriteMessage(1, []byte(m))
+			} else {
+				continue
+			}
+		}
+	}
 }
 
 // NewRandomServer returns a new server with a random world
 func NewRandomServer(n int) Server {
 	return Server{
 		zones:   nil,
-		players: nil,
+		players: make(map[uint64]*Player),
 		bots:    nil,
 		world:   RandomWorld(n),
 	}
@@ -100,10 +106,14 @@ func StaticHandler(res http.ResponseWriter, req *http.Request) {
 
 // Listen for connections
 func (self *Server) Listen(port int) {
+	ticker := time.NewTicker(1 * time.Second)
+
 	r := mux.NewRouter().StrictSlash(true)
 	r.HandleFunc("/", GameHandler)
-	r.HandleFunc("/ws", SocketHandler)
 	r.HandleFunc("/favicon.ico", StaticHandler)
+	r.HandleFunc("/ws", self.SocketHandler())
+
+	//
 	r.HandleFunc("/world", func(w http.ResponseWriter, r *http.Request) {
 		fs, err := json.Marshal(self.world)
 		if err != nil {
@@ -114,6 +124,16 @@ func (self *Server) Listen(port int) {
 	})
 
 	r.PathPrefix(STATIC_DIR).Handler(http.StripPrefix(STATIC_DIR, http.FileServer(http.Dir("../server"+STATIC_DIR))))
+
+	go func() {
+		for _ = range ticker.C {
+			for k, v := range self.players {
+				v.ship.Coord.Theta += 0.1
+				// XXX: ADD UPDATE TO HUB HERE
+			}
+			panic("ADD UPDATE TO HUB HERE")
+		}
+	}()
 
 	log.Println("nevermind again -- bia next time")
 	log.Println(STATIC_DIR)
