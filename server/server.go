@@ -131,6 +131,8 @@ func (self *Server) Listen(port int) {
 			return
 		}
 		w.Write([]byte(fs))
+
+		panic("Remove this handler.... we can just make this part of socket connect")
 	})
 
 	r.PathPrefix(STATIC_DIR).Handler(http.StripPrefix(STATIC_DIR, http.FileServer(http.Dir("../server"+STATIC_DIR))))

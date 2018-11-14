@@ -1,4 +1,5 @@
 import * as THREE from 'THREE';
+import {debounce} from './function-utils.js';
 
 import {sub, cross} from './math3.js';
 
@@ -69,6 +70,16 @@ export class PlanetApp {
     let mouse = {x: 0.0, y: 0.0};
 
     return {
+      // Toggle camera view controls
+      keypress: (ev) => {
+        switch (ev.key) {
+        case " ":
+          self.targetShip = null;
+        }
+      },
+      // XXX: Figure out motion controls
+      keydown: {
+      },
       resize: debounce(100, (ev) => {
         let size = Math.min(window.innerWidth, window.innerHeight);
         this.width = window.innerWidth;
@@ -237,6 +248,7 @@ export class PlanetApp {
 
       this.camera.position.set(x, y, z);
       this.camera.lookAt(0.0, 0.0, 0.0);
+      console.error("Position is being set weirdly after ship target toggle");
     }
   }
 

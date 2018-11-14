@@ -16,6 +16,11 @@ function lezgo(id) {
     state: STATE,
   });
 
+  let {keypress} = app.eventHandlers();
+
+
+  document.addEventListener("keypress", keypress);
+
   app.setup();
 
   fetch("/world").then((resp) => {
