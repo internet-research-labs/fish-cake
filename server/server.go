@@ -73,6 +73,16 @@ func (self *Server) SocketHandler() func(http.ResponseWriter, *http.Request) {
 			}
 		}()
 
+		info, _ := json.Marshal(struct {
+			Type string
+			Id   string
+		}{
+			Type: "you-are",
+			Id:   fmt.Sprintf("%d", player.ship.Id),
+		})
+
+		conn.WriteMessage(1, []byte(info))
+
 		// Message
 		for s := range player.channel {
 			m, e := json.Marshal(s)

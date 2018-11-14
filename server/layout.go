@@ -63,14 +63,10 @@ func RandomBuildings(n int) []WorldCoord {
 
 // MakeRandomWorld returns a world structure
 func RandomWorld(n int) World {
-
-	ships := make(map[uint64]Ship)
-
-	// World
 	return World{
 		Buildings: RandomBuildings(400),
-		Ships:     ships,
-		Radius:    15.0,
+		Ships:     make(map[uint64]Ship),
+		Radius:    25.0,
 		Thickness: 1.0,
 	}
 }

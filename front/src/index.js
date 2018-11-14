@@ -18,22 +18,37 @@ function lezgo(id) {
 
   app.setup();
 
-  // Get live stream
-  let socket = new WebSocket("ws://"+location.host+"/ws");
-
   fetch("/world").then((resp) => {
     return resp.json();
   }).then((world) => {
     app.updateWorld(world);
+    attachSocketEvents();
   });
 
-  socket.onopen = function () {
+
+  function attachSocketEvents() {
+
+    // Get live stream
+    let socket = new WebSocket("ws://"+location.host+"/ws");
+
+    // Open
+    socket.addEventListener('open', function (ev) {
+      console.log(ev);
+    });
+
     // Message
     socket.addEventListener('message', function (ev) {
       let data = JSON.parse(ev.data);
       let ships = data.ships;
-      app.updateShips(ships);
-      app.needsUpdate = true;
+
+      switch (data.Type) {
+      case "you-are":
+          console.log("You are ", data.Id);
+          app.targetShip = data.Id;
+      default:
+        app.updateShips(ships);
+        app.needsUpdate = true;
+      }
     });
 
     // Close
@@ -52,7 +67,6 @@ function lezgo(id) {
   // Things that you might want later
   return [
     app,
-    socket,
   ];
 }
 

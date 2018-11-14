@@ -60,7 +60,7 @@ export class PlanetApp {
 
     // Empty amount of ships
     this.ships = new Map();
-
+    this.targetShip = undefined;
   }
 
   // Return object containing all the necessary event handlers
@@ -211,17 +211,33 @@ export class PlanetApp {
       this.needsUpdate = false;
     }
 
-    let t = new Date()/1000.0;
-    let r = 40.0;
 
-    let x = r*Math.cos(t);
-    let y = 0.0;
-    let z = r*Math.sin(t);
+    if (this.targetShip && this.ships.has(this.targetShip)) {
+      let {coord} = this.ships.get(this.targetShip);
+      let {theta, fi} = coord;
+      let [x, y, z] = this.coord(theta, fi);
+      let [a, b, c] = this.coord(theta, fi, 40.0);
+      let [p, q, r] = sub(
+        this.coord(theta, fi+0.01, 40.0),
+        this.coord(theta, fi-0.01, 40.0),
+      );
 
-    y = 40.0;
+      this.camera.position.set(a, b, c);
+      this.camera.up.set(p, q, r);
+      this.camera.lookAt(x, y, z);
+    } else {
+      let t = new Date()/50000.0;
+      let r = 40.0;
 
-    this.camera.position.set(x, y, z);
-    this.camera.lookAt(0.0, 0.0, 0.0);
+      let x = r*Math.cos(t);
+      let y = 0.0;
+      let z = r*Math.sin(t);
+
+      y = 40.0;
+
+      this.camera.position.set(x, y, z);
+      this.camera.lookAt(0.0, 0.0, 0.0);
+    }
   }
 
   // Resize canvas and set camera straight
