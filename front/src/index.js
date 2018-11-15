@@ -23,13 +23,7 @@ function lezgo(id) {
 
   app.setup();
 
-  fetch("/world").then((resp) => {
-    return resp.json();
-  }).then((world) => {
-    app.updateWorld(world);
-    attachSocketEvents();
-  });
-
+  attachSocketEvents();
 
   function attachSocketEvents() {
 
@@ -47,9 +41,13 @@ function lezgo(id) {
       let ships = data.ships;
 
       switch (data.Type) {
+      case "world":
+          app.updateWorld(data.World);
+          break;
       case "you-are":
           console.log("You are ", data.Id);
           app.targetShip = data.Id;
+          break;
       default:
         app.updateShips(ships);
         app.needsUpdate = true;

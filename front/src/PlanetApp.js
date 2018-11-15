@@ -99,11 +99,6 @@ export class PlanetApp {
     }
   }
 
-
-  // Construct the torus
-  setupWorld() {
-  }
-
   coord(t, f, float) {
     let {radius, depth} = this.params;
     depth += float || 0.0;
@@ -248,7 +243,7 @@ export class PlanetApp {
 
       this.camera.position.set(x, y, z);
       this.camera.lookAt(0.0, 0.0, 0.0);
-      console.error("Position is being set weirdly after ship target toggle");
+      // console.error("Position is being set weirdly after ship target toggle");
     }
   }
 

@@ -83,6 +83,18 @@ func (self *Server) SocketHandler() func(http.ResponseWriter, *http.Request) {
 
 		conn.WriteMessage(1, []byte(info))
 
+		//
+		world_message, _ := json.Marshal(struct {
+			Type  string
+			World World
+		}{
+			Type:  "world",
+			World: self.world,
+		})
+
+		log.Println(world_message)
+		conn.WriteMessage(1, []byte(world_message))
+
 		// Message
 		for s := range player.channel {
 			m, e := json.Marshal(s)
@@ -122,18 +134,6 @@ func (self *Server) Listen(port int) {
 	r.HandleFunc("/", GameHandler)
 	r.HandleFunc("/favicon.ico", StaticHandler)
 	r.HandleFunc("/ws", self.SocketHandler())
-
-	//
-	r.HandleFunc("/world", func(w http.ResponseWriter, r *http.Request) {
-		fs, err := json.Marshal(self.world)
-		if err != nil {
-			w.Write([]byte("sicko mode"))
-			return
-		}
-		w.Write([]byte(fs))
-
-		panic("Remove this handler.... we can just make this part of socket connect")
-	})
 
 	r.PathPrefix(STATIC_DIR).Handler(http.StripPrefix(STATIC_DIR, http.FileServer(http.Dir("../server"+STATIC_DIR))))
 
