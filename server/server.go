@@ -92,7 +92,7 @@ func (self *Server) SocketHandler() func(http.ResponseWriter, *http.Request) {
 			World: self.world,
 		})
 
-		log.Println(world_message)
+		// Send message to the world
 		conn.WriteMessage(1, []byte(world_message))
 
 		// Message
