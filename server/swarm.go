@@ -4,34 +4,23 @@ import (
 	"log"
 )
 
-const (
-	SPEED   = 0.05
-	ATTRACT = 0.1
-	REPULSE = 0.1
-	ORIENT  = 0.1
-)
-
-type Vector3 struct {
-	X float64 `json:"x"`
-	Y float64 `json:"y"`
-	Z float64 `json:"z"`
-}
-
-// Add returns a new vector3
-func Add(a, b Vector3) Vector3 {
-	return Vector3{
-		a.X + b.X,
-		a.Y + b.Y,
-		a.Z + b.Z,
-	}
-}
-
 // Swift
 type Swift struct {
 	Id  uint
 	Pos Vector3
 	Dir Vector3
 }
+
+// SwiftMap is the standard collection for swifts
+type SwiftMap map[uint]*Swift
+
+// Zone constants for swifts
+const (
+	SPEED   = 0.05
+	ATTRACT = 0.1
+	REPULSE = 0.1
+	ORIENT  = 0.1
+)
 
 // Zone
 type SwiftZone struct {
@@ -49,7 +38,7 @@ func NewSwiftZone() SwiftZone {
 }
 
 // Add swift to map
-func (self *SwiftZone) Add(p Vector3) {
+func (self *SwiftZone) Add(p, d Vector3) {
 	swifty := Swift{
 		Id:  self.id,
 		Pos: p,
@@ -62,6 +51,21 @@ func (self *SwiftZone) Add(p Vector3) {
 // Update ...
 func (self *SwiftZone) Tick() {
 	for _, v := range self.swifts {
-		log.Println("x_x", v)
+		v.Pos.X += 0.1
 	}
+}
+
+// GetNear returns a map of swifts near a point with radius d
+func (self *SwiftZone) GetNear(pos Vector3, d float64) SwiftMap {
+	neighbors := make(SwiftMap)
+	for _, v := range self.swifts {
+		if Distance(v.Pos, pos) < d {
+			neighbors[v.Id] = v
+		}
+	}
+	return neighbors
+}
+
+func x_x() {
+	log.Println("x_x")
 }
