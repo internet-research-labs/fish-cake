@@ -27,6 +27,8 @@ function lezgo(id) {
 
   function attachSocketEvents() {
 
+    let targetShip = undefined;
+
     // Get live stream
     let socket = new WebSocket("ws://"+location.host+"/ws");
 
@@ -40,14 +42,16 @@ function lezgo(id) {
       let data = JSON.parse(ev.data);
       let ships = data.ships;
 
+      // Switch on this
       switch (data.Type) {
       case "world":
           app.updateWorld(data.World);
           break;
+
       case "you-are":
-          console.log("You are ", data.Id);
-          app.targetShip = data.Id;
+          app.id = data.Id;
           break;
+
       default:
         app.updateShips(ships);
         app.needsUpdate = true;

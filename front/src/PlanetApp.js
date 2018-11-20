@@ -74,7 +74,7 @@ export class PlanetApp {
       keypress: (ev) => {
         switch (ev.key) {
         case " ":
-          self.targetShip = null;
+          self.targetShip = self.targetShip ? undefined : self.id;
         }
       },
       // XXX: Figure out motion controls
@@ -241,9 +241,9 @@ export class PlanetApp {
 
       y = 40.0;
 
+      this.camera.up.set(0, 1, 0);
       this.camera.position.set(x, y, z);
       this.camera.lookAt(0.0, 0.0, 0.0);
-      // console.error("Position is being set weirdly after ship target toggle");
     }
   }
 
