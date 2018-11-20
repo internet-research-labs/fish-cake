@@ -26,10 +26,11 @@ func GameHandler(w http.ResponseWriter, r *http.Request) {
 
 // Server holds local zone game information
 type Server struct {
-	zones   []Zone
-	players map[uint64]*Player
-	bots    []uint
-	world   World
+	zones      []Zone
+	players    map[uint64]*Player
+	bots       []uint
+	world      World
+	simulation SwiftZone
 }
 
 // SocketHandler returns a handler function for gorilla that adds a new ship
@@ -110,10 +111,11 @@ func (self *Server) SocketHandler() func(http.ResponseWriter, *http.Request) {
 // NewRandomServer returns a new server with a random world
 func NewRandomServer(n int) Server {
 	return Server{
-		zones:   nil,
-		players: make(map[uint64]*Player),
-		bots:    nil,
-		world:   RandomWorld(n),
+		zones:      nil,
+		players:    make(map[uint64]*Player),
+		bots:       nil,
+		world:      RandomWorld(n),
+		simulation: NewSwiftZone(),
 	}
 }
 
@@ -150,6 +152,30 @@ func (self *Server) Listen(port int) {
 		}
 	}()
 
+	// Simulation
+	// Simulation
+	// Simulation
+
+	self.simulation.Start()
+	defer self.simulation.Stop()
+
+	for i := -4.0; i <= 4.0; i++ {
+		for j := -4.0; j <= 4.0; j++ {
+			x := i
+			y := j
+			self.simulation.Add(Vector3{x, y, 0.0}, Vector3{0.0, 0.0, 1.0})
+		}
+	}
+
+	// Send swifts updates
+	go func() {
+		for m := range self.simulation.channel {
+			for _, p := range self.players {
+				p.SendMessage(m)
+			}
+		}
+	}()
+
 	//
 	go func() {
 		for s := range update_clients {
@@ -161,7 +187,9 @@ func (self *Server) Listen(port int) {
 			}
 			encoded, _ := json.Marshal(w)
 			for _, v := range self.players {
-				v.connection.WriteMessage(1, []byte(encoded))
+				// v.connection.WriteMessage(1, []byte(encoded))
+				_ = v
+				_ = encoded
 			}
 		}
 	}()

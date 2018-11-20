@@ -41,20 +41,26 @@ function lezgo(id) {
     socket.addEventListener('message', function (ev) {
       let data = JSON.parse(ev.data);
       let ships = data.ships;
+      let type = data.type || data.Type;
 
       // Switch on this
-      switch (data.Type) {
-      case "world":
+      switch (type) {
+        case "world":
           app.updateWorld(data.World);
           break;
 
-      case "you-are":
+        case "you-are":
           app.id = data.Id;
           break;
 
-      default:
-        app.updateShips(ships);
-        app.needsUpdate = true;
+        case "bleep":
+          app.updateSwifts(data.blob);
+          app.needsUpdate = true;
+          break;
+
+        default:
+          app.updateShips(ships);
+          app.needsUpdate = true;
       }
     });
 

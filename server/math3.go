@@ -1,5 +1,9 @@
 package server
 
+import (
+	"math"
+)
+
 // Vector3 represnts the normal 3d cartesian -vector
 type Vector3 struct {
 	X float64 `json:"x"`
@@ -29,5 +33,6 @@ func Norm(p Vector3) float64 {
 
 // Return distance between 2 points
 func Distance(p, q Vector3) float64 {
-	return Norm(Sub(p, q))
+	v := Sub(p, q)
+	return math.Max(v.X, math.Max(v.Y, v.Z))
 }

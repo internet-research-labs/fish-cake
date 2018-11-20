@@ -22,3 +22,8 @@ func (self *Player) Tick() {
 	self.ship.Coord.Fi += 0.1
 	self.channel <- self.ship
 }
+
+// SendMessage sends a message over that players connection
+func (self *Player) SendMessage(m interface{}) {
+	self.connection.WriteMessage(1, EncodeWireMessage("bleep", m))
+}

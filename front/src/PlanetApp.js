@@ -58,7 +58,6 @@ export class PlanetApp {
     let [x, y, z] = [a-0.5, a, -a];
     this.resize(this.width, this.height);
 
-
     // Empty amount of ships
     this.ships = new Map();
     this.targetShip = undefined;
@@ -158,6 +157,15 @@ export class PlanetApp {
 
       this.scene.add(o);
     });
+
+    // Simulation box
+    this.simulation = new THREE.Group();
+    this.simulation.add(new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(13.0, 13.0, 13.0)),
+      new THREE.LineBasicMaterial({color: 0xDDDDDD}),
+    ));
+
+    this.scene.add(this.simulation);
   }
 
   /**
@@ -209,6 +217,26 @@ export class PlanetApp {
       o.position.set(x, y, z);
       this.ships.set(id, s);
     }
+  }
+
+  // UpdateSwifts
+  updateSwifts(swifts) {
+    Object.keys(swifts).forEach(id => {
+      let swift = swifts[id];
+      let name = "SWIFT:"+id;
+      let {x, y, z} = swift.pos;
+
+      let m = this.scene.getObjectByName(name);
+      if (!m) {
+        m = new THREE.Mesh(
+          new THREE.BoxGeometry(0.1, 0.1, 0.1),
+          new THREE.MeshBasicMaterial({color: 0xFF0000}),
+        );
+        m.name = name;
+        this.scene.add(m);
+      }
+      m.position.set(x, y, z);
+    });
   }
 
   // Update
