@@ -87,7 +87,7 @@ func (self *SwiftZone) updatePosition(swift *Swift) {
 		Scale(direction, 0.1/norm),
 	)
 
-	panic("This isn't working as expected")
+	panic("We need to product all directions before adding them, otherwise things will lean towards one direction")
 }
 
 // updateposition updates a position for a swift
