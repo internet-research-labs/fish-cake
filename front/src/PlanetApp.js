@@ -161,8 +161,8 @@ export class PlanetApp {
     // Simulation box
     this.simulation = new THREE.Group();
     this.simulation.add(new THREE.LineSegments(
-      new THREE.EdgesGeometry(new THREE.BoxGeometry(13.0, 13.0, 13.0)),
-      new THREE.LineBasicMaterial({color: 0xDDDDDD}),
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(16.0, 16.0, 16.0)),
+      new THREE.LineBasicMaterial({color: 0x666666}),
     ));
 
     this.scene.add(this.simulation);

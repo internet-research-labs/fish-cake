@@ -67,20 +67,36 @@ func (self *SwiftZone) Stop() {
 	self.ticker = nil
 }
 
-// Update ...
-func (self *SwiftZone) tick() {
-	for _, v := range self.swifts {
-		v.Pos.Z += 0.05
+// updateposition updates a position for a swift
+func (self *SwiftZone) updatePosition(swift *Swift) {
+	swift.Pos.Z += 0.1
+}
 
-		// Wrap boundaries
-		switch {
-		case v.Pos.X > 8.0:
-			v.Pos.X = -8.0
-		case v.Pos.Y > 8.0:
-			v.Pos.Y = -8.0
-		case v.Pos.Z > 8.0:
-			v.Pos.Z = -8.0
-		}
+// updateposition updates a position for a swift
+func (self *SwiftZone) wrap(swift *Swift) {
+	// Wrap boundaries
+	switch {
+	case swift.Pos.X > 8.0:
+		swift.Pos.X = -8.0
+	case swift.Pos.Y > 8.0:
+		swift.Pos.Y = -8.0
+	case swift.Pos.Z > 8.0:
+		swift.Pos.Z = -8.0
+
+	case swift.Pos.X < -8.0:
+		swift.Pos.X = 8.0
+	case swift.Pos.Y < -8.0:
+		swift.Pos.Y = 8.0
+	case swift.Pos.Z < -8.0:
+		swift.Pos.Z = 8.0
+	}
+}
+
+// tick updates every swift
+func (self *SwiftZone) tick() {
+	for _, s := range self.swifts {
+		self.updatePosition(s)
+		self.wrap(s)
 	}
 
 	self.channel <- self.GetNear(Vector3{0., 0., 0.}, 16.0)
