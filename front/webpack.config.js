@@ -1,5 +1,4 @@
 const webpack = require('webpack');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 module.exports = {
   context: __dirname + "/src",
@@ -7,33 +6,27 @@ module.exports = {
   output: {
     // path: __dirname + '/dist',
     path: __dirname + '/../server/static/js',
-    filename: 'fish-cake.min.js',
     publicPath: "assets/",
+    filename: 'fish-cake.min.js',
     libraryTarget: 'var',
     library: 'svv',
   },
-  // devtool: 'source-map',
-  plugins: new webpack.optimize.UglifyJsPlugin(),
   module: {
-    loaders: [
+    rules: [
       {
-        test: /\.(frag|vert)?$/,
+        test: /\.js$/,
         exclude: /node_modules/,
-        loader: 'webpack-glsl',
-      },
-      {
-        test: /\.jsx?$/,
-        exclude: /node_modules/,
-        loader: 'babel',
-        query: {
-          presets: ['es2015', 'react'],
-        },
-      },
+        use: ['babel-loader'],
+      }
     ],
+  },
+  resolve: {
+    extensions: ['*', '.js'],
   },
   externals: {
     "THREE": "THREE",
     "react": "React",
     "react-dom": "ReactDOM",
   },
+  mode: "production",
 };
