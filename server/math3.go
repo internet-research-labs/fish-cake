@@ -31,6 +31,11 @@ func Norm(p Vector3) float64 {
 	return p.X*p.X + p.Y*p.Y + p.Z*p.Z
 }
 
+// Return norm of a point
+func NormL2(p Vector3) float64 {
+	return p.X*p.X + p.Y*p.Y + p.Z*p.Z
+}
+
 // Return distance between 2 points
 func Distance(p, q Vector3) float64 {
 	v := Sub(p, q)

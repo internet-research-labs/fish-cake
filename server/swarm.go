@@ -44,7 +44,7 @@ func (self *SwiftZone) Add(p, d Vector3) {
 	swifty := Swift{
 		Id:  self.id,
 		Pos: p,
-		Dir: Vector3{1.0, 0.0, 0.0},
+		Dir: d,
 	}
 	self.swifts[self.id] = &swifty
 	self.id += 1
@@ -68,8 +68,26 @@ func (self *SwiftZone) Stop() {
 }
 
 // updateposition updates a position for a swift
+// - we are essentially creating a force field
 func (self *SwiftZone) updatePosition(swift *Swift) {
-	swift.Pos.Z += 0.1
+	neighbors := self.GetNear(swift.Pos, 0.0)
+	pos := Vector3{0.0, 0.0, 0.0}
+	for _, n := range neighbors {
+		pos = Add(pos, n.Pos)
+	}
+
+	attractor := Scale(pos, 1.0/float64(len(neighbors)))
+	direction := swift.Dir
+	norm := NormL2(direction)
+
+	_ = attractor
+
+	swift.Pos = Add(
+		swift.Pos,
+		Scale(direction, 0.1/norm),
+	)
+
+	panic("This isn't working as expected")
 }
 
 // updateposition updates a position for a swift
