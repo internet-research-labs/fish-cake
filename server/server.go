@@ -161,9 +161,15 @@ func (self *Server) Listen(port int) {
 
 	for i := -4.0; i <= 4.0; i++ {
 		for j := -4.0; j <= 4.0; j++ {
-			x := i
-			y := j
-			self.simulation.Add(Vector3{x, y, 0.0}, Vector3{0.0, 0.0, 1.0})
+			for k := -4.0; k <= 4.0; k++ {
+				x := i
+				y := j
+				z := k
+				self.simulation.Add(
+					Vector3{x, y, z},
+					Vector3{0.0, 0.0, 1.0},
+				)
+			}
 		}
 	}
 

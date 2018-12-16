@@ -28,16 +28,22 @@ func Scale(p Vector3, a float64) Vector3 {
 
 // Return norm of a point
 func Norm(p Vector3) float64 {
-	return p.X*p.X + p.Y*p.Y + p.Z*p.Z
+	return math.Sqrt(p.X*p.X + p.Y*p.Y + p.Z*p.Z)
 }
 
 // Return norm of a point
 func NormL2(p Vector3) float64 {
-	return p.X*p.X + p.Y*p.Y + p.Z*p.Z
+	return math.Sqrt(p.X*p.X + p.Y*p.Y + p.Z*p.Z)
 }
 
 // Return distance between 2 points
 func Distance(p, q Vector3) float64 {
+	return NormL2(Sub(p, q))
+}
+
+// Return distance between 2 points
+// XXX: This is wrong
+func DistanceInf(p, q Vector3) float64 {
 	v := Sub(p, q)
 	return math.Max(v.X, math.Max(v.Y, v.Z))
 }

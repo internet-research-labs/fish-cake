@@ -221,6 +221,12 @@ export class PlanetApp {
 
   // UpdateSwifts
   updateSwifts(swifts) {
+    function randomColor() {
+      let r = Math.random()*255;
+      let g = Math.random()*255;
+      let b = Math.random()*255;
+      return r*16*16*16*16 + g*16*16 + b;
+    }
     Object.keys(swifts).forEach(id => {
       let swift = swifts[id];
       let name = "SWIFT:"+id;
@@ -230,7 +236,7 @@ export class PlanetApp {
       if (!m) {
         m = new THREE.Mesh(
           new THREE.BoxGeometry(0.1, 0.1, 0.1),
-          new THREE.MeshBasicMaterial({color: 0xFF0000}),
+          new THREE.MeshBasicMaterial({color: randomColor()}),
         );
         m.name = name;
         this.scene.add(m);
@@ -244,7 +250,6 @@ export class PlanetApp {
     if (this.needsUpdate) {
       this.needsUpdate = false;
     }
-
 
     if (this.targetShip && this.ships.has(this.targetShip)) {
       let {coord} = this.ships.get(this.targetShip);
@@ -261,13 +266,11 @@ export class PlanetApp {
       this.camera.lookAt(x, y, z);
     } else {
       let t = new Date()/50000.0;
-      let r = 40.0;
+      let r = 20.0;
 
       let x = r*Math.cos(t);
-      let y = 0.0;
+      let y = r;
       let z = r*Math.sin(t);
-
-      y = 40.0;
 
       this.camera.up.set(0, 1, 0);
       this.camera.position.set(x, y, z);

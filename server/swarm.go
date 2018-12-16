@@ -2,6 +2,7 @@ package server
 
 import (
 	"log"
+	"math"
 	"time"
 )
 
@@ -16,6 +17,7 @@ type Swift struct {
 type SwiftMap map[uint]*Swift
 
 // Zone constants for swifts
+// XXX: These aren't used yet
 const (
 	SPEED   = 0.05
 	ATTRACT = 0.1
@@ -67,53 +69,69 @@ func (self *SwiftZone) Stop() {
 	self.ticker = nil
 }
 
-// updateposition updates a position for a swift
-// - we are essentially creating a force field
-func (self *SwiftZone) updatePosition(swift *Swift) {
-	neighbors := self.GetNear(swift.Pos, 0.0)
-	pos := Vector3{0.0, 0.0, 0.0}
-	for _, n := range neighbors {
-		pos = Add(pos, n.Pos)
+// GetForce returns ...
+func GetForce(swift, actor *Swift) Vector3 {
+	mag := Distance(swift.Pos, actor.Pos)
+	// Determine how much this {swift} wants to move towards this {actor}
+	dir := Sub(actor.Pos, swift.Pos)
+
+	shove := 0.0001
+
+	if mag > 3.0 {
+		return Scale(dir, shove)
 	}
+	return Scale(dir, -shove)
+}
 
-	attractor := Scale(pos, 1.0/float64(len(neighbors)))
-	direction := swift.Dir
-	norm := NormL2(direction)
+// getMapOfNewSwifts returns a map of swifts
+// NOTE: ...
+func (self *SwiftZone) getUpdatedPositions() map[uint]Swift {
+	swifts := make(map[uint]Swift)
 
-	_ = attractor
+	for id, swift := range self.swifts {
+		influence := Vector3{0.0, 0.0, 0.0}
+		neighbors := self.GetNear(swift.Pos, 0.707)
 
-	swift.Pos = Add(
-		swift.Pos,
-		Scale(direction, 0.1/norm),
-	)
+		// For everyone near enough to influence...
+		// Let's compute the overall force
+		for _, n := range neighbors {
+			force := GetForce(swift, n)
+			influence = Add(influence, force)
+		}
 
-	panic("We need to product all directions before adding them, otherwise things will lean towards one direction")
+		dir := Add(swift.Dir, influence)
+
+		// Attach swift to it
+		swifts[id] = Swift{
+			Id:  id,
+			Pos: Add(swift.Pos, dir),
+			Dir: swift.Dir,
+		}
+	}
+	return swifts
 }
 
 // updateposition updates a position for a swift
 func (self *SwiftZone) wrap(swift *Swift) {
-	// Wrap boundaries
-	switch {
-	case swift.Pos.X > 8.0:
-		swift.Pos.X = -8.0
-	case swift.Pos.Y > 8.0:
-		swift.Pos.Y = -8.0
-	case swift.Pos.Z > 8.0:
-		swift.Pos.Z = -8.0
-
-	case swift.Pos.X < -8.0:
-		swift.Pos.X = 8.0
-	case swift.Pos.Y < -8.0:
-		swift.Pos.Y = 8.0
-	case swift.Pos.Z < -8.0:
-		swift.Pos.Z = 8.0
-	}
+	SIZE := 8.0
+	AROU := 2 * SIZE
+	swift.Pos.X = math.Mod(swift.Pos.X+SIZE, AROU) - SIZE
+	swift.Pos.Y = math.Mod(swift.Pos.Y+SIZE, AROU) - SIZE
+	swift.Pos.Z = math.Mod(swift.Pos.Z+SIZE, AROU) - SIZE
 }
 
 // tick updates every swift
 func (self *SwiftZone) tick() {
-	for _, s := range self.swifts {
-		self.updatePosition(s)
+	updateMap := self.getUpdatedPositions()
+
+	for id, s := range self.swifts {
+		newSwift, found := updateMap[id]
+		if found {
+			s.Pos.X = newSwift.Pos.X
+			s.Pos.Y = newSwift.Pos.Y
+			s.Pos.Z = newSwift.Pos.Z
+		}
+		// self.updatePosition(s)
 		self.wrap(s)
 	}
 
@@ -122,13 +140,16 @@ func (self *SwiftZone) tick() {
 
 // GetNear returns a map of swifts near a point with radius d
 func (self *SwiftZone) GetNear(pos Vector3, d float64) SwiftMap {
-	neighbors := make(SwiftMap)
-	for _, v := range self.swifts {
-		if Distance(v.Pos, pos) <= d {
-			neighbors[v.Id] = v
+	return self.swifts
+	/*
+		neighbors := make(SwiftMap)
+		for _, v := range self.swifts {
+			if Distance(v.Pos, pos) <= d {
+				neighbors[v.Id] = v
+			}
 		}
-	}
-	return neighbors
+		return neighbors
+	*/
 }
 
 func x_x() {
