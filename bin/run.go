@@ -12,6 +12,7 @@ import (
 func main() {
 	//
 	var cpuprofile = flag.String("profile", "", "write cpu profile to `file`")
+	var static = flag.String("static", "", "directory of static assets")
 
 	// Command-line
 	flag.Parse()
@@ -38,6 +39,6 @@ func main() {
 		log.Println("Profiling!")
 	}
 
-	s := server.NewRandomServer(10)
+	s := server.NewRandomServer(10, *static)
 	s.Listen(8080)
 }

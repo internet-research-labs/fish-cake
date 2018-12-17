@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
-	"html/template"
 	"log"
 	"net/http"
 	"path"
@@ -17,15 +16,9 @@ const (
 	PORT       = "8080"
 )
 
-// GameHamndler
-func GameHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("../server/static/index.html"))
-	w.WriteHeader(http.StatusOK)
-	tmpl.Execute(w, "ok")
-}
-
 // Server holds local zone game information
 type Server struct {
+	templates  string
 	zones      []Zone
 	players    map[uint64]*Player
 	bots       []uint
@@ -109,8 +102,9 @@ func (self *Server) SocketHandler() func(http.ResponseWriter, *http.Request) {
 }
 
 // NewRandomServer returns a new server with a random world
-func NewRandomServer(n int) Server {
+func NewRandomServer(n int, static string) Server {
 	return Server{
+		templates:  static,
 		zones:      nil,
 		players:    make(map[uint64]*Player),
 		bots:       nil,
@@ -122,22 +116,26 @@ func NewRandomServer(n int) Server {
 // upgrader adds websocket support
 var upgrader = websocket.Upgrader{}
 
-// StaticHandler responds to requests by path
-func StaticHandler(res http.ResponseWriter, req *http.Request) {
-	fname := path.Base(req.URL.Path)
-	http.ServeFile(res, req, "../server/static/"+fname)
-}
-
 // Listen for connections
 func (self *Server) Listen(port int) {
 	ticker := time.NewTicker(23 * time.Millisecond)
 
+	// StaticHandler responds to requests by path
+	StaticHandler := func(res http.ResponseWriter, req *http.Request) {
+		fname := path.Base(req.URL.Path)
+		if fname == "" || fname == "/" {
+			fname = "index.html"
+		}
+		log.Println("Serving static: " + self.templates + fname)
+		http.ServeFile(res, req, self.templates+fname)
+	}
+
+	// Fix all routing
 	r := mux.NewRouter().StrictSlash(true)
-	r.HandleFunc("/", GameHandler)
+	r.HandleFunc("/", StaticHandler)
 	r.HandleFunc("/favicon.ico", StaticHandler)
 	r.HandleFunc("/ws", self.SocketHandler())
-
-	r.PathPrefix(STATIC_DIR).Handler(http.StripPrefix(STATIC_DIR, http.FileServer(http.Dir("../server"+STATIC_DIR))))
+	r.PathPrefix(STATIC_DIR).Handler(http.StripPrefix(STATIC_DIR, http.FileServer(http.Dir(self.templates))))
 
 	// Channel of updates
 	update_clients := make(chan Ship)
