@@ -53,9 +53,9 @@ func (self *SwiftZone) Add(p, d Vector3) {
 }
 
 // Start ticking
-func (self *SwiftZone) Start() {
+func (self *SwiftZone) Start(n time.Duration) {
 	log.Println("SwiftZone.Start()")
-	self.ticker = time.NewTicker(13 * time.Millisecond)
+	self.ticker = time.NewTicker(n)
 	go func() {
 		for _ = range self.ticker.C {
 			self.tick()

@@ -154,7 +154,7 @@ func (self *Server) Listen(port int) {
 	// Simulation
 	// Simulation
 
-	self.simulation.Start()
+	self.simulation.Start(33 * time.Millisecond)
 	defer self.simulation.Stop()
 
 	for i := -4.0; i <= 4.0; i++ {

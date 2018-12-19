@@ -19,14 +19,29 @@
     <meta property="music:album:disc" content="420">
     <meta property="music:album:track" content="69">
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/92/three.js"></script>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background-color: rgb(0, 0, 33);
+      }
+      #you-know {
+        margin-top: 100px;
+        width: 100%;
+      }
+    </style>
+
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/92/three.js"></script> -->
+    <script src="/static/vendor//three.js"></script>
     <script src="/static/js/fish-cake.min.js"></script>
   </head>
   <body>
 
-    <canvas width="800" height="600" id="you-know"></canvas>
+    <canvas width="800" height="400" id="you-know"></canvas>
     <script>
-      svv.lezgo("you-know");
+      svv.svvarm("you-know");
     </script>
   </body>
 </html>

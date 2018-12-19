@@ -1,4 +1,5 @@
 import {PlanetApp} from './PlanetApp.js';
+import {SwarmApp} from './SwarmApp.js';
 
 
 /**
@@ -8,6 +9,45 @@ let STATE = {
   ships: [],
 };
 
+function svvarm(id) {
+  let app = new SwarmApp({
+    id: id,
+    state: STATE,
+  });
+
+  app.setup();
+  app.buildWorld();
+  app.update();
+  app.draw();
+
+  // Get live stream
+  let socket = new WebSocket("ws://"+location.host+"/swarm");
+
+  // Open
+  socket.addEventListener('open', function (ev) {
+    console.log(ev);
+  });
+
+  // Message
+  socket.addEventListener('message', function (ev) {
+    let data = JSON.parse(ev.data);
+    let ships = data.ships;
+    let type = data.type || data.Type;
+
+    // Switch on this
+    switch (type) {
+      case "yupdate":
+        app.updateSwifts(data.blob);
+        app.update();
+        app.draw();
+    }
+  });
+
+  // Close
+  socket.addEventListener("close", function () {
+    console.log("CLOSED!");
+  });
+}
 
 function lezgo(id) {
 
@@ -85,4 +125,5 @@ function lezgo(id) {
 
 export {
   lezgo,
+  svvarm,
 }
