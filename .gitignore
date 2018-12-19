@@ -1,3 +1,4 @@
+*.min.js
 *.swp
 node_modules
 package-lock.json
