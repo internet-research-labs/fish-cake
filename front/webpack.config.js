@@ -5,7 +5,7 @@ module.exports = {
   entry: './index.js',
   output: {
     // path: __dirname + '/dist',
-    path: __dirname + '/../server/static/js',
+    path: __dirname + '/../static/js',
     publicPath: "assets/",
     filename: 'fish-cake.min.js',
     libraryTarget: 'var',
