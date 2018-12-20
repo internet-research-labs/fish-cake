@@ -9,7 +9,7 @@ let STATE = {
   ships: [],
 };
 
-function svvarm(id) {
+function swarm(id) {
   let app = new SwarmApp({
     id: id,
     state: STATE,
@@ -125,5 +125,5 @@ function lezgo(id) {
 
 export {
   lezgo,
-  svvarm,
+  swarm,
 }
