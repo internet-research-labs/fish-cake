@@ -1,5 +1,5 @@
 # Build our go application
-FROM golang:1.10 AS go-build
+FROM golang:1.11.2 AS go-build
 RUN go get github.com/internet-research-labs/fish-cake/server
 WORKDIR /go/src/github.com/internet-research-labs/fish-cake/bin
 ENV GOBIN=/go/bin
@@ -7,7 +7,7 @@ RUN go install -ldflags "-linkmode external -extldflags -static" -a run.go
 RUN go install -ldflags "-linkmode external -extldflags -static" -a swarm.go
 
 # Compile our javascript
-FROM node:11.2.0-slim AS node-build
+FROM node:11.2.0-alpine AS node-build
 COPY --from=go-build  /go/src/github.com/internet-research-labs/fish-cake/ /fish-cake
 WORKDIR /fish-cake/front
 RUN npm install
