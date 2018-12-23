@@ -65,6 +65,7 @@ func (self *SwiftZone) Start(n time.Duration) {
 
 func (self *SwiftZone) Stop() {
 	log.Println("SwiftZone.Stop()")
+	close(self.channel)
 	self.ticker.Stop()
 	self.ticker = nil
 }
@@ -134,6 +135,12 @@ func (self *SwiftZone) tick() {
 		// self.updatePosition(s)
 		self.wrap(s)
 	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered")
+		}
+	}()
 
 	self.channel <- self.GetNear(Vector3{0., 0., 0.}, 16.0)
 }

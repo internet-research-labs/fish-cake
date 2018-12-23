@@ -9,7 +9,7 @@ let STATE = {
   ships: [],
 };
 
-function swarm(id) {
+function svvarm(id) {
   let app = new SwarmApp({
     id: id,
     state: STATE,
@@ -57,7 +57,6 @@ function lezgo(id) {
   });
 
   let {keypress} = app.eventHandlers();
-
 
   document.addEventListener("keypress", keypress);
 
@@ -126,4 +125,5 @@ function lezgo(id) {
 export {
   lezgo,
   swarm,
+  svvarm,
 }

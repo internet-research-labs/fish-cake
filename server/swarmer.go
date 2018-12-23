@@ -41,8 +41,17 @@ func SwarmSocketHandler() func(http.ResponseWriter, *http.Request) {
 			conn.Close()
 		}()
 
-		for m := range zone.channel {
-			conn.WriteMessage(1, EncodeWireMessage("yupdate", m))
+		go func() {
+			for m := range zone.channel {
+				conn.WriteMessage(1, EncodeWireMessage("yupdate", m))
+			}
+		}()
+
+		for {
+			_, _, err := conn.ReadMessage()
+			if err != nil {
+				break
+			}
 		}
 	}
 }
