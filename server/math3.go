@@ -26,6 +26,10 @@ func Scale(p Vector3, a float64) Vector3 {
 	return Vector3{a * p.X, a * p.Y, a * p.Z}
 }
 
+func (self *Vector3) Normalized() Vector3 {
+	return Scale(*self, Norm(*self))
+}
+
 // Return norm of a point
 func Norm(p Vector3) float64 {
 	return math.Sqrt(p.X*p.X + p.Y*p.Y + p.Z*p.Z)

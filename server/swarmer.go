@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"log"
+	"math/rand"
 	"net/http"
 	"path"
 	"time"
@@ -22,6 +23,9 @@ func SwarmSocketHandler() func(http.ResponseWriter, *http.Request) {
 		zone := NewSwiftZone()
 		zone.Start(30 * time.Millisecond)
 
+		// Seed before calling random
+		rand.Seed(time.Now().UTC().UnixNano())
+
 		log.Println("Adding swifts")
 		for i := -4.0; i <= 4.0; i++ {
 			for j := -4.0; j <= 4.0; j++ {
@@ -29,7 +33,8 @@ func SwarmSocketHandler() func(http.ResponseWriter, *http.Request) {
 					x, y, z := i, j, k
 					zone.Add(
 						Vector3{x, y, z},
-						Vector3{0.0, 0.0, 0.0},
+						// Vector3{0.0, 0.0, -0.2},
+						RandomVector3(-0.02, 0.02),
 					)
 				}
 			}

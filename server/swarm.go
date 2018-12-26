@@ -75,6 +75,7 @@ func GetForce(swift, actor *Swift) Vector3 {
 		ATTRACT = 0.001
 		REPULSE = 0.0014
 	)
+
 	d := Distance(swift.Pos, actor.Pos)
 	dir := Sub(actor.Pos, swift.Pos)
 	mag := ATTRACT/d/d - REPULSE/d/d/d
@@ -86,14 +87,20 @@ func GetForce(swift, actor *Swift) Vector3 {
 	return Scale(dir, mag)
 }
 
+func (self *Vector3) Copy() Vector3 {
+	return Vector3{self.X, self.Y, self.Z}
+}
+
 // getMapOfNewSwifts returns a map of swifts
 // NOTE: ...
 func (self *SwiftZone) getUpdatedPositions() map[uint]Swift {
+
 	swifts := make(map[uint]Swift)
 
 	for id, swift := range self.swifts {
 		influence := Vector3{0.0, 0.0, 0.0}
 		neighbors := self.GetNear(swift.Pos, 0.707)
+		aligner := Vector3{}
 
 		// For everyone near enough to influence...
 		// Let's compute the overall force
@@ -101,29 +108,58 @@ func (self *SwiftZone) getUpdatedPositions() map[uint]Swift {
 			if id == n_id {
 				continue
 			}
+
+			d := Distance(swift.Pos, n.Pos)
+
+			// Get overall desired position to get near
 			force := GetForce(swift, n)
 			influence = Add(influence, force)
+
+			if d < 2.0 && d > 0.1 {
+				aligner = Add(aligner, n.Dir)
+			}
 		}
 
-		dir := Add(swift.Dir, influence)
+		aligner = aligner
+		dir := Add(aligner, influence)
+
+		// dir := Add(influence, swift.Dir)
+		// dir = Scale(dir, 0.5)
 
 		// Attach swift to it
 		swifts[id] = Swift{
 			Id:  id,
 			Pos: Add(swift.Pos, dir),
-			Dir: swift.Dir,
+			Dir: dir,
 		}
 	}
 	return swifts
 }
 
+// Wrapf is like a mod that shifts negative numbers to positive ones
+func Wrapf(x, y float64) float64 {
+	if y < 0.0 {
+		return 0.0
+	}
+	for x < 0.0 {
+		x += y
+	}
+
+	if x > y {
+		return math.Mod(x, y)
+	}
+
+	return x
+}
+
 // updateposition updates a position for a swift
 func (self *SwiftZone) wrap(swift *Swift) {
-	SIZE := 8.0
-	AROU := 2 * SIZE
-	swift.Pos.X = math.Mod(swift.Pos.X+SIZE, AROU) - SIZE
-	swift.Pos.Y = math.Mod(swift.Pos.Y+SIZE, AROU) - SIZE
-	swift.Pos.Z = math.Mod(swift.Pos.Z+SIZE, AROU) - SIZE
+	LOW := -8.0
+	HIGH := 8.0
+	AROU := HIGH - LOW
+	swift.Pos.X = Wrapf(swift.Pos.X-LOW, AROU) + LOW
+	swift.Pos.Y = Wrapf(swift.Pos.Y-LOW, AROU) + LOW
+	swift.Pos.Z = Wrapf(swift.Pos.Z-LOW, AROU) + LOW
 }
 
 // tick updates every swift
