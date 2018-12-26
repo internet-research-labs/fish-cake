@@ -109,7 +109,7 @@ func NewRandomServer(n int, static string) Server {
 		players:    make(map[uint64]*Player),
 		bots:       nil,
 		world:      RandomWorld(n),
-		simulation: NewSwiftZone(),
+		simulation: NewSwiftZone(0.001, 0.0014, 0.5),
 	}
 }
 

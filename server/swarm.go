@@ -29,13 +29,23 @@ type SwiftZone struct {
 	swifts  map[uint]*Swift `json:"swifts"`
 	channel chan SwiftMap   `json:"channel"`
 	ticker  *time.Ticker
+
+	// swarming properties
+	attraction float64
+	repulsion  float64
+	alignment  float64
 }
 
 // NewSwiftZone returns a new zone
-func NewSwiftZone() SwiftZone {
+func NewSwiftZone(a, b, c float64) SwiftZone {
 	return SwiftZone{
 		swifts:  make(map[uint]*Swift),
 		channel: make(chan SwiftMap),
+
+		// Swarm properties
+		attraction: a,
+		repulsion:  b,
+		alignment:  c,
 	}
 }
 
@@ -115,7 +125,7 @@ func (self *SwiftZone) getUpdatedPositions() map[uint]Swift {
 			force := GetForce(swift, n)
 			influence = Add(influence, force)
 
-			if d < 2.0 && d > 0.1 {
+			if d < 0.9 && d > 0.1 {
 				aligner = Add(aligner, n.Dir)
 			}
 		}

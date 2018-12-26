@@ -20,20 +20,25 @@ func SwarmSocketHandler() func(http.ResponseWriter, *http.Request) {
 		log.Println("Connecting")
 
 		log.Println("Making your own personal world")
-		zone := NewSwiftZone()
+		zone := NewSwiftZone(0.001, 0.0014, 0.5)
 		zone.Start(30 * time.Millisecond)
 
 		// Seed before calling random
 		rand.Seed(time.Now().UTC().UnixNano())
 
 		log.Println("Adding swifts")
-		for i := -4.0; i <= 4.0; i++ {
-			for j := -4.0; j <= 4.0; j++ {
-				for k := -4.0; k <= 4.0; k++ {
-					x, y, z := i, j, k
+		for i := 0.0; i < 8.0; i++ {
+			for j := 0.0; j < 8.0; j++ {
+				for k := 0.0; k < 8.0; k++ {
+					/*
+						x := i - 4.0
+						y := j - 4.0
+						z := k - 4.0
+					*/
 					zone.Add(
-						Vector3{x, y, z},
+						// Vector3{x, y, z},
 						// Vector3{0.0, 0.0, -0.2},
+						RandomVector3(-2.0, 2.0),
 						RandomVector3(-0.02, 0.02),
 					)
 				}
