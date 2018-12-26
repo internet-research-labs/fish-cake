@@ -1,5 +1,6 @@
 import * as THREE from 'THREE';
 import {debounce} from './function-utils.js';
+import {makeSwift, randomColor} from './obj/swift.js';
 
 import {sub, cross} from './math3.js';
 
@@ -129,10 +130,7 @@ export class SwarmApp {
     let o = this.scene.getObjectByName(id);
 
     if (o == undefined) {
-      o = new THREE.Mesh(
-        new THREE.BoxGeometry(0.5, 0.5, 0.5),
-        new THREE.MeshBasicMaterial({color:0x000000}),
-      );
+      o = makeSwift();
       let a = Math.random()*2*Math.PI;
       let b = Math.random()*2*Math.PI;
       let c = Math.random()*2*Math.PI;
@@ -162,23 +160,13 @@ export class SwarmApp {
 
   // UpdateSwifts
   updateSwifts(swifts) {
-    function randomColor() {
-      let r = Math.random()*255;
-      let g = Math.random()*255;
-      let b = Math.random()*255;
-      return r*16*16*16*16 + g*16*16 + b;
-    }
     Object.keys(swifts).forEach(id => {
       let swift = swifts[id];
       let name = "SWIFT:"+id;
       let {x, y, z} = swift.pos;
-
       let m = this.scene.getObjectByName(name);
       if (!m) {
-        m = new THREE.Mesh(
-          new THREE.BoxGeometry(0.1, 0.1, 0.1),
-          new THREE.MeshBasicMaterial({color: randomColor()}),
-        );
+        m = makeSwift();
         m.name = name;
         this.scene.add(m);
       }
