@@ -13,17 +13,15 @@ type Swift struct {
 	Dir Vector3 `json:"dir"`
 }
 
+func (self *Swift) Steal(rhs *Swift) {
+	// Update position
+	self.Pos.X = rhs.Pos.X
+	self.Pos.Y = rhs.Pos.Y
+	self.Pos.Z = rhs.Pos.Z
+}
+
 // SwiftMap is the standard collection for swifts
 type SwiftMap map[uint]*Swift
-
-// Zone constants for swifts
-// XXX: These aren't used yet
-const (
-	SPEED   = 0.05
-	ATTRACT = 0.1
-	REPULSE = 0.1
-	ORIENT  = 0.1
-)
 
 // SwiftZone keeps track of all the swifts, and exposes a channel of updates
 type SwiftZone struct {
@@ -72,16 +70,20 @@ func (self *SwiftZone) Stop() {
 
 // GetForce returns ...
 func GetForce(swift, actor *Swift) Vector3 {
-	mag := Distance(swift.Pos, actor.Pos)
-	// Determine how much this {swift} wants to move towards this {actor}
+
+	const (
+		ATTRACT = 0.001
+		REPULSE = 0.0014
+	)
+	d := Distance(swift.Pos, actor.Pos)
 	dir := Sub(actor.Pos, swift.Pos)
+	mag := ATTRACT/d/d - REPULSE/d/d/d
 
-	shove := 0.0001
-
-	if mag > 3.0 {
-		return Scale(dir, shove)
+	if d < 0.01 {
+		return Vector3{0.0, 0.0, 0.0}
 	}
-	return Scale(dir, -shove)
+
+	return Scale(dir, mag)
 }
 
 // getMapOfNewSwifts returns a map of swifts
@@ -95,7 +97,10 @@ func (self *SwiftZone) getUpdatedPositions() map[uint]Swift {
 
 		// For everyone near enough to influence...
 		// Let's compute the overall force
-		for _, n := range neighbors {
+		for n_id, n := range neighbors {
+			if id == n_id {
+				continue
+			}
 			force := GetForce(swift, n)
 			influence = Add(influence, force)
 		}
@@ -123,16 +128,16 @@ func (self *SwiftZone) wrap(swift *Swift) {
 
 // tick updates every swift
 func (self *SwiftZone) tick() {
+
+	// Get set of updated positions per id
 	updateMap := self.getUpdatedPositions()
 
+	//
 	for id, s := range self.swifts {
 		newSwift, found := updateMap[id]
 		if found {
-			s.Pos.X = newSwift.Pos.X
-			s.Pos.Y = newSwift.Pos.Y
-			s.Pos.Z = newSwift.Pos.Z
+			s.Steal(&newSwift)
 		}
-		// self.updatePosition(s)
 		self.wrap(s)
 	}
 

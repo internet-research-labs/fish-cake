@@ -190,8 +190,7 @@ export class SwarmApp {
   update(params) {
     this.needsUpdate = false;
 
-    let t = new Date()/50000.0;
-    t = Math.PI/3;
+    let t = new Date()/10000.0;
     let r = 20.0;
 
     let x = r*Math.cos(t);
