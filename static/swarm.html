@@ -1,10 +1,8 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <title>real quick -- okay</title>
-
     <meta charset="utf-8" />
-
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta property="og:title" content="grass.business ¯\_(ツ)_/¯">
     <meta property="og:site_name" content="grass.business">
@@ -18,28 +16,55 @@
     <meta property="music:album" content="grass">
     <meta property="music:album:disc" content="420">
     <meta property="music:album:track" content="69">
-
     <style>
       html, body {
-        margin: 0;
         padding: 0;
+        margin: 0;
+        font-family: sans-serif;
       }
       body {
-        background-color: rgb(0, 0, 33);
+        /* background-color: rgb(0, 0, 33); */
       }
       #you-know {
-        margin-top: 100px;
+        margin: 0;
+        padding: 0;
         width: 100%;
+      }
+
+      #controls {
+        background-color: rgb(33, 33, 33, 0.1);
+        padding: 10px;
+        position: fixed;
+        top: 10px;
+        right: 10px;
       }
     </style>
 
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/92/three.js"></script> -->
-    <script src="/static/vendor//three.js"></script>
+    <script src="/static/vendor/three.js"></script>
     <script src="/static/js/fish-cake.min.js"></script>
   </head>
   <body>
 
+
     <canvas width="800" height="400" id="you-know"></canvas>
+    <div id="controls">
+      <table>
+        <tr>
+          <td>attraction</td>
+          <td><input type="range" value="0.1" min="0.0" max="1.0" step="0.01" id="swarm-attraction"></input></td>
+          <td>??</td>
+        </tr>
+          <td>repulsion</td>
+          <td><input type="range" value="0.1" min="0.0" max="1.0" step="0.01" id="swarm-repulsion"></input></td>
+          <td>??</td>
+        </tr>
+          <td>orientation</td>
+          <td><input type="range" value="0.1" min="0.0" max="1.0" step="0.01" id="swarm-orientation"></input></td>
+          <td>??</td>
+        </tr>
+      </table>
+    </div>
     <script>
       svv.svvarm("you-know");
     </script>
