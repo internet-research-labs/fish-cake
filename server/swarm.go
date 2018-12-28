@@ -31,9 +31,9 @@ type SwiftZone struct {
 	ticker  *time.Ticker
 
 	// swarming properties
-	attraction float64
-	repulsion  float64
-	alignment  float64
+	Attraction float64
+	Repulsion  float64
+	Alignment  float64
 }
 
 // NewSwiftZone returns a new zone
@@ -43,9 +43,9 @@ func NewSwiftZone(a, b, c float64) SwiftZone {
 		channel: make(chan SwiftMap),
 
 		// Swarm properties
-		attraction: a,
-		repulsion:  b,
-		alignment:  c,
+		Attraction: a,
+		Repulsion:  b,
+		Alignment:  c,
 	}
 }
 
@@ -79,16 +79,11 @@ func (self *SwiftZone) Stop() {
 }
 
 // GetForce returns ...
-func GetForce(swift, actor *Swift) Vector3 {
-
-	const (
-		ATTRACT = 0.001
-		REPULSE = 0.0014
-	)
+func (self *SwiftZone) GetForce(swift, actor *Swift) Vector3 {
 
 	d := Distance(swift.Pos, actor.Pos)
 	dir := Sub(actor.Pos, swift.Pos)
-	mag := ATTRACT/d/d - REPULSE/d/d/d
+	mag := self.Attraction/d/d - self.Repulsion/d/d/d
 
 	if d < 0.01 {
 		return Vector3{0.0, 0.0, 0.0}
@@ -122,7 +117,7 @@ func (self *SwiftZone) getUpdatedPositions() map[uint]Swift {
 			d := Distance(swift.Pos, n.Pos)
 
 			// Get overall desired position to get near
-			force := GetForce(swift, n)
+			force := self.GetForce(swift, n)
 			influence = Add(influence, force)
 
 			if d < 0.9 && d > 0.1 {

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
 	"log"
@@ -10,9 +11,20 @@ import (
 	"time"
 )
 
+type SwarmParams struct {
+	Attraction float64 `json:"attraction"`
+	Repulsion  float64 `json:"repulsion"`
+	Alignment  float64 `json:"alignment"`
+}
+
 // SocketHandler returns a handler function for gorilla that adds a new ship
 func SwarmSocketHandler() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+
+		log.Println(*r)
+
+		// Seed before calling random
+		rand.Seed(time.Now().UTC().UnixNano())
 
 		// Upgrade to a websocket connection
 		conn, _ := upgrader.Upgrade(w, r, nil)
@@ -20,24 +32,18 @@ func SwarmSocketHandler() func(http.ResponseWriter, *http.Request) {
 		log.Println("Connecting")
 
 		log.Println("Making your own personal world")
-		zone := NewSwiftZone(0.001, 0.0014, 0.5)
+		zone := NewSwiftZone(
+			Random(0.001, 0.003),
+			Random(0.001, 0.003),
+			Random(0.0, 1.0),
+		)
 		zone.Start(30 * time.Millisecond)
-
-		// Seed before calling random
-		rand.Seed(time.Now().UTC().UnixNano())
 
 		log.Println("Adding swifts")
 		for i := 0.0; i < 8.0; i++ {
 			for j := 0.0; j < 8.0; j++ {
 				for k := 0.0; k < 8.0; k++ {
-					/*
-						x := i - 4.0
-						y := j - 4.0
-						z := k - 4.0
-					*/
 					zone.Add(
-						// Vector3{x, y, z},
-						// Vector3{0.0, 0.0, -0.2},
 						RandomVector3(-2.0, 2.0),
 						RandomVector3(-0.02, 0.02),
 					)
@@ -58,9 +64,15 @@ func SwarmSocketHandler() func(http.ResponseWriter, *http.Request) {
 		}()
 
 		for {
-			_, _, err := conn.ReadMessage()
+			_, msg, err := conn.ReadMessage()
 			if err != nil {
 				break
+			} else {
+				params := SwarmParams{}
+				json.Unmarshal(msg, &params)
+				zone.Attraction = params.Attraction
+				zone.Repulsion = params.Repulsion
+				zone.Alignment = params.Alignment
 			}
 		}
 	}

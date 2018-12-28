@@ -52,21 +52,49 @@
       <table>
         <tr>
           <td>attraction</td>
-          <td><input type="range" value="0.1" min="0.0" max="1.0" step="0.01" id="swarm-attraction"></input></td>
-          <td>??</td>
+          <td><input type="range" value="0.0001" min="0.0" max="0.001" step="0.00001" id="swarm-attraction" onchange="matchFormValues()"></input></td>
+          <td><input value="00" size="8" id="swarm-attraction-val"></input></td>
         </tr>
           <td>repulsion</td>
-          <td><input type="range" value="0.1" min="0.0" max="1.0" step="0.01" id="swarm-repulsion"></input></td>
-          <td>??</td>
+          <td><input type="range" value="0.0001" min="0.0" max="0.001" step="0.00001" id="swarm-repulsion" onchange="matchFormValues()"></input></td>
+          <td><input value="00" size="8" id="swarm-repulsion-val"></input></td>
         </tr>
-          <td>orientation</td>
-          <td><input type="range" value="0.1" min="0.0" max="1.0" step="0.01" id="swarm-orientation"></input></td>
-          <td>??</td>
+          <td>alignment</td>
+          <td><input type="range" value="0.0001" min="0.0" max="1.0" step="0.01" id="swarm-alignment" onchange="matchFormValues()"></input></td>
+          <td><input value="00" size="8" id="swarm-alignment-val"></input></td>
         </tr>
       </table>
     </div>
     <script>
       svv.svvarm("you-know");
+      function get(id) {
+        return typeof(id) == "string" ? document.getElementById(id) : id;
+      }
+      function getValue(id) {
+        return get(id).value;
+      }
+      function matchValues(src, dst) {
+        src = get(src);
+        dst = get(dst);
+        dst.value = src.value;
+      }
+      function matchFormValues() {
+        var x = ["attraction", "repulsion", "alignment"];
+        x.forEach(function (v) {
+          matchValues("swarm-"+v, "swarm-"+v+"-val");
+        });
+        try {
+          svv.updateSwarm(
+            getValue("swarm-attraction"),
+            getValue("swarm-repulsion"),
+            getValue("swarm-alignment"),
+          );
+        } catch (e) {
+          console.error("wiff");
+        }
+      }
+
+      matchFormValues();
     </script>
   </body>
 </html>

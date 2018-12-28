@@ -9,6 +9,8 @@ let STATE = {
   ships: [],
 };
 
+let socket = undefined;
+
 function svvarm(id) {
   let app = new SwarmApp({
     id: id,
@@ -21,7 +23,7 @@ function svvarm(id) {
   app.draw();
 
   // Get live stream
-  let socket = new WebSocket("ws://"+location.host+"/swarm");
+  socket = new WebSocket("ws://"+location.host+"/swarm");
 
   // Open
   socket.addEventListener('open', function (ev) {
@@ -47,6 +49,14 @@ function svvarm(id) {
   socket.addEventListener("close", function () {
     console.log("CLOSED!");
   });
+}
+
+function updateSwarm(attraction, repulsion, alignment) {
+  socket.send(JSON.stringify({
+    "attraction": parseFloat(attraction),
+    "repulsion": parseFloat(repulsion),
+    "alignment": parseFloat(alignment),
+  }));
 }
 
 function lezgo(id) {
@@ -126,4 +136,5 @@ export {
   lezgo,
   swarm,
   svvarm,
+  updateSwarm,
 }
