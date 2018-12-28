@@ -37,6 +37,8 @@ func SwarmSocketHandler() func(http.ResponseWriter, *http.Request) {
 			Random(0.001, 0.003),
 			Random(0.0, 1.0),
 		)
+
+		log.Printf("Zone made with %f %f %f\n", zone.Attraction, zone.Repulsion, zone.Alignment)
 		zone.Start(30 * time.Millisecond)
 
 		log.Println("Adding swifts")

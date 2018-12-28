@@ -170,6 +170,7 @@ export class SwarmApp {
         m.name = name;
         this.scene.add(m);
       }
+      m.lookAt(x,y, z);
       m.position.set(x, y, z);
     });
   }

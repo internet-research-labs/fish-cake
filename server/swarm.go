@@ -127,9 +127,7 @@ func (self *SwiftZone) getUpdatedPositions() map[uint]Swift {
 
 		aligner = aligner
 		dir := Add(aligner, influence)
-
-		// dir := Add(influence, swift.Dir)
-		// dir = Scale(dir, 0.5)
+		// dir = Vector3{0.0, 0.0, 0.1}
 
 		// Attach swift to it
 		swifts[id] = Swift{
