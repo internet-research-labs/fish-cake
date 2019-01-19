@@ -134,7 +134,6 @@ function lezgo(id) {
 
 export {
   lezgo,
-  swarm,
   svvarm,
   updateSwarm,
 }

@@ -124,7 +124,7 @@ func (self *Server) Listen(port int) {
 	StaticHandler := func(res http.ResponseWriter, req *http.Request) {
 		fname := path.Base(req.URL.Path)
 		if fname == "" || fname == "/" {
-			fname = "index.html"
+			fname = "fish-cake.html"
 		}
 		log.Println("Serving static: " + self.templates + fname)
 		http.ServeFile(res, req, self.templates+fname)
