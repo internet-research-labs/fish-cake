@@ -96,18 +96,15 @@ func SwarmSocketHandler() func(http.ResponseWriter, *http.Request) {
 		conn, _ := upgrader.Upgrade(w, r, nil)
 
 		family.Add(id, conn)
-		defer family.Remove(id)
-
-		log.Println("Connecting")
 
 		defer func() {
 			log.Println("Closing connection")
+			family.Remove(id)
 			conn.Close()
 		}()
 
 		for {
-			_, _, err := conn.ReadMessage()
-			if err != nil {
+			if _, _, err := conn.ReadMessage(); err != nil {
 				break
 			}
 		}
