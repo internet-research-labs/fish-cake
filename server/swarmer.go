@@ -1,14 +1,16 @@
 package server
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"log"
 	"math/rand"
 	"net/http"
 	"path"
+	"sync"
 	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 )
 
 type SwarmParams struct {
@@ -17,64 +19,96 @@ type SwarmParams struct {
 	Alignment  float64 `json:"alignment"`
 }
 
+type ConnectionFamily struct {
+	conns map[string]*websocket.Conn
+	mutex sync.Mutex
+	In    chan SwiftMap
+}
+
+func NewConnectionFamily() *ConnectionFamily {
+
+	family := ConnectionFamily{
+		conns: make(map[string]*websocket.Conn),
+		In:    make(chan SwiftMap),
+	}
+
+	go func() {
+		for update := range family.In {
+			for id, conn := range family.conns {
+				log.Println("UPDATING:", id)
+				conn.WriteMessage(1, EncodeWireMessage("yupdate", update))
+			}
+		}
+	}()
+
+	return &family
+}
+
+func (family *ConnectionFamily) Add(id string, conn *websocket.Conn) {
+	family.mutex.Lock()
+	defer family.mutex.Unlock()
+	family.conns[id] = conn
+}
+
+func (family *ConnectionFamily) Remove(id string) {
+	family.mutex.Lock()
+	defer family.mutex.Unlock()
+	delete(family.conns, id)
+}
+
 // SocketHandler returns a handler function for gorilla that adds a new ship
 func SwarmSocketHandler() func(http.ResponseWriter, *http.Request) {
+
+	zone := NewSwiftZone(0.001062, 0.002555, 0.491596)
+
+	log.Println("Adding swifts")
+	for i := 0; i < 8; i++ {
+		for j := 0; j < 8; j++ {
+			for k := 0; k < 8; k++ {
+				zone.Add(
+					RandomVector3(-2.0, 2.0),
+					RandomVector3(-0.02, 0.02),
+				)
+			}
+		}
+	}
+
+	counter := 0
+
+	// Seed before calling random
+	rand.Seed(time.Now().UTC().UnixNano())
+	zone.Start(3 * time.Millisecond)
+
+	family := NewConnectionFamily()
+
+	go func() {
+		for m := range zone.channel {
+			family.In <- m
+		}
+	}()
+
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		log.Println(*r)
-
-		// Seed before calling random
-		rand.Seed(time.Now().UTC().UnixNano())
+		counter += 1
+		id := fmt.Sprintf("%d", counter)
 
 		// Upgrade to a websocket connection
 		conn, _ := upgrader.Upgrade(w, r, nil)
 
+		family.Add(id, conn)
+		defer family.Remove(id)
+
 		log.Println("Connecting")
-
-		log.Println("Making your own personal world")
-		zone := NewSwiftZone(
-			Random(0.001, 0.003),
-			Random(0.001, 0.003),
-			Random(0.0, 1.0),
-		)
-
-		log.Printf("Zone made with %f %f %f\n", zone.Attraction, zone.Repulsion, zone.Alignment)
-		zone.Start(30 * time.Millisecond)
-
-		log.Println("Adding swifts")
-		for i := 0.0; i < 8.0; i++ {
-			for j := 0.0; j < 8.0; j++ {
-				for k := 0.0; k < 8.0; k++ {
-					zone.Add(
-						RandomVector3(-2.0, 2.0),
-						RandomVector3(-0.02, 0.02),
-					)
-				}
-			}
-		}
 
 		defer func() {
 			log.Println("Closing connection")
-			zone.Stop()
 			conn.Close()
 		}()
 
-		go func() {
-			for m := range zone.channel {
-				conn.WriteMessage(1, EncodeWireMessage("yupdate", m))
-			}
-		}()
-
 		for {
-			_, msg, err := conn.ReadMessage()
+			_, _, err := conn.ReadMessage()
 			if err != nil {
 				break
-			} else {
-				params := SwarmParams{}
-				json.Unmarshal(msg, &params)
-				zone.Attraction = params.Attraction
-				zone.Repulsion = params.Repulsion
-				zone.Alignment = params.Alignment
 			}
 		}
 	}
@@ -96,13 +130,11 @@ func SwarmListen(port int, templates string) {
 		http.ServeFile(res, req, templates+fname)
 	}
 
-	// Fix all routing
 	r := mux.NewRouter().StrictSlash(true)
 	r.HandleFunc("/", StaticHandler)
 	r.HandleFunc("/favicon.ico", StaticHandler)
 	r.HandleFunc("/swarm", SwarmSocketHandler())
 	r.PathPrefix(STATIC_DIR).Handler(http.StripPrefix(STATIC_DIR, http.FileServer(http.Dir(templates))))
 
-	// ok
 	http.ListenAndServe(fmt.Sprintf(":%d", port), r)
 }

@@ -192,15 +192,6 @@ func (self *SwiftZone) tick() {
 // GetNear returns a map of swifts near a point with radius d
 func (self *SwiftZone) GetNear(pos Vector3, d float64) SwiftMap {
 	return self.swifts
-	/*
-		neighbors := make(SwiftMap)
-		for _, v := range self.swifts {
-			if Distance(v.Pos, pos) <= d {
-				neighbors[v.Id] = v
-			}
-		}
-		return neighbors
-	*/
 }
 
 func x_x() {
