@@ -3,12 +3,13 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 	"path"
 	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 )
 
 const (
@@ -109,7 +110,7 @@ func NewRandomServer(n int, static string) Server {
 		players:    make(map[uint64]*Player),
 		bots:       nil,
 		world:      RandomWorld(n),
-		simulation: NewSwiftZone(0.001, 0.0014, 0.5),
+		simulation: *NewSwiftZone(0.001, 0.0014, 0.5),
 	}
 }
 

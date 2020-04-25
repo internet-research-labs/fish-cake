@@ -13,6 +13,8 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// Matty Mneomonic
+
 type SwarmParams struct {
 	Attraction float64 `json:"attraction"`
 	Repulsion  float64 `json:"repulsion"`
@@ -25,6 +27,15 @@ type ConnectionFamily struct {
 	In    chan SwiftMap
 }
 
+type WrappedSwiftMap struct {
+	Map    *SwiftMap `json:"map"`
+	Length int       `json:"length"`
+}
+
+func NewWrappedSwiftMap(m *SwiftMap) WrappedSwiftMap {
+	return WrappedSwiftMap{m, 0}
+}
+
 func NewConnectionFamily() *ConnectionFamily {
 
 	family := ConnectionFamily{
@@ -34,9 +45,10 @@ func NewConnectionFamily() *ConnectionFamily {
 
 	go func() {
 		for update := range family.In {
-			for id, conn := range family.conns {
-				log.Println("UPDATING:", id)
-				conn.WriteMessage(1, EncodeWireMessage("yupdate", update))
+			// encoded := EncodeWireMessage("yupdate", NewWrappedSwiftMap(update))
+			encoded := EncodeWireMessage("yupdate", update)
+			for _, conn := range family.conns {
+				conn.WriteMessage(websocket.TextMessage, encoded)
 			}
 		}
 	}()
@@ -59,55 +71,50 @@ func (family *ConnectionFamily) Remove(id string) {
 // SocketHandler returns a handler function for gorilla that adds a new ship
 func SwarmSocketHandler() func(http.ResponseWriter, *http.Request) {
 
-	zone := NewSwiftZone(0.001062, 0.002555, 0.491596)
-
-	log.Println("Adding swifts")
-	for i := 0; i < 8; i++ {
-		for j := 0; j < 8; j++ {
-			for k := 0; k < 8; k++ {
-				zone.Add(
-					RandomVector3(-2.0, 2.0),
-					RandomVector3(-0.02, 0.02),
-				)
-			}
-		}
-	}
-
-	counter := 0
+	const dur = 33 * time.Millisecond
 
 	// Seed before calling random
 	rand.Seed(time.Now().UTC().UnixNano())
-	zone.Start(3 * time.Millisecond)
 
+	// Setup zone
+	zone := NewSwiftZone(0.001062, 0.002555, 0.491596)
+	zone.Start(dur)
+
+	// Setup family
 	family := NewConnectionFamily()
 
 	go func() {
+		// pdates come in here every dur seconds
 		for m := range zone.channel {
 			family.In <- m
 		}
 	}()
 
+	// Setup counter
+	counter := 0
+
+	// Return the handler
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		counter += 1
 		id := fmt.Sprintf("%d", counter)
+		counter += 1
 
 		// Upgrade to a websocket connection
 		conn, _ := upgrader.Upgrade(w, r, nil)
 
+		// Open
+		fmt.Printf("Opening connection %q\n", id)
 		family.Add(id, conn)
 
+		// Close
 		defer func() {
-			log.Println("Closing connection")
+			log.Printf("Closing connection %q\n", id)
 			family.Remove(id)
 			conn.Close()
 		}()
 
-		for {
-			if _, _, err := conn.ReadMessage(); err != nil {
-				break
-			}
-		}
+		// Hold open until connection responds/closes
+		conn.ReadMessage()
 	}
 }
 

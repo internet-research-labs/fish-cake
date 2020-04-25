@@ -3,6 +3,7 @@ package server
 import (
 	"log"
 	"math"
+	"sync"
 	"time"
 )
 
@@ -34,11 +35,15 @@ type SwiftZone struct {
 	Attraction float64
 	Repulsion  float64
 	Alignment  float64
+
+	// Counter
+	Ticks int64
+	mux   sync.Mutex
 }
 
 // NewSwiftZone returns a new zone
-func NewSwiftZone(a, b, c float64) SwiftZone {
-	return SwiftZone{
+func NewSwiftZone(a, b, c float64) *SwiftZone {
+	zone := SwiftZone{
 		swifts:  make(map[uint]*Swift),
 		channel: make(chan SwiftMap),
 
@@ -47,6 +52,21 @@ func NewSwiftZone(a, b, c float64) SwiftZone {
 		Repulsion:  b,
 		Alignment:  c,
 	}
+
+	log.Println("Adding swifts")
+	const MAX = 8
+	for i := 0; i < MAX; i++ {
+		for j := 0; j < MAX; j++ {
+			for k := 0; k < MAX; k++ {
+				zone.Add(
+					RandomVector3(-2.0, 2.0),
+					RandomVector3(-0.02, 0.02),
+				)
+			}
+		}
+	}
+
+	return &zone
 }
 
 // Add swift to map
@@ -103,6 +123,7 @@ func (self *SwiftZone) getUpdatedPositions() map[uint]Swift {
 	swifts := make(map[uint]Swift)
 
 	for id, swift := range self.swifts {
+
 		influence := Vector3{0.0, 0.0, 0.0}
 		neighbors := self.GetNear(swift.Pos, 0.707)
 		aligner := Vector3{}
@@ -120,7 +141,7 @@ func (self *SwiftZone) getUpdatedPositions() map[uint]Swift {
 			force := self.GetForce(swift, n)
 			influence = Add(influence, force)
 
-			if d < 0.9 && d > 0.1 {
+			if 0.1 < d && d < 0.9 {
 				aligner = Add(aligner, n.Dir)
 			}
 		}
@@ -155,7 +176,7 @@ func Wrapf(x, y float64) float64 {
 	return x
 }
 
-// updateposition updates a position for a swift
+// Wrap swift around the boundary
 func (self *SwiftZone) wrap(swift *Swift) {
 	LOW := -8.0
 	HIGH := 8.0
@@ -167,6 +188,9 @@ func (self *SwiftZone) wrap(swift *Swift) {
 
 // tick updates every swift
 func (self *SwiftZone) tick() {
+
+	self.mux.Lock()
+	defer self.mux.Unlock()
 
 	// Get set of updated positions per id
 	updateMap := self.getUpdatedPositions()
@@ -180,13 +204,8 @@ func (self *SwiftZone) tick() {
 		self.wrap(s)
 	}
 
-	defer func() {
-		if r := recover(); r != nil {
-			log.Println("Recovered")
-		}
-	}()
-
 	self.channel <- self.GetNear(Vector3{0., 0., 0.}, 16.0)
+	self.Ticks++
 }
 
 // GetNear returns a map of swifts near a point with radius d

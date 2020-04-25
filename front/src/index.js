@@ -1,6 +1,9 @@
 import {PlanetApp} from './PlanetApp.js';
 import {SwarmApp} from './SwarmApp.js';
 
+console.log("M A T T Y D I G I T A L");
+console.log("aka Johnny Mnemonic");
+
 
 /**
  * Game State
@@ -9,7 +12,20 @@ let STATE = {
   ships: [],
 };
 
+
 let socket = undefined;
+
+
+let Gap = (function () {
+  let LAST = +new Date();
+  return function () {
+    let LATEST = + new Date();
+    let v = LATEST - LAST;
+    LAST = LATEST;
+    return v;
+  };
+}())
+
 
 function svvarm(id) {
   let app = new SwarmApp({
@@ -32,6 +48,8 @@ function svvarm(id) {
 
   // Message
   socket.addEventListener('message', function (ev) {
+    // console.log(Gap());
+
     let data = JSON.parse(ev.data);
     let ships = data.ships;
     let type = data.type || data.Type;
@@ -39,6 +57,7 @@ function svvarm(id) {
     // Switch on this
     switch (type) {
       case "yupdate":
+        // console.log(data.blob);
         app.updateSwifts(data.blob);
         app.update();
         app.draw();
