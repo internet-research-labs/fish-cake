@@ -24,31 +24,24 @@ type SwarmParams struct {
 type ConnectionFamily struct {
 	conns map[string]*websocket.Conn
 	mutex sync.Mutex
-	In    chan SwiftMap
-}
-
-type WrappedSwiftMap struct {
-	Map    *SwiftMap `json:"map"`
-	Length int       `json:"length"`
-}
-
-func NewWrappedSwiftMap(m *SwiftMap) WrappedSwiftMap {
-	return WrappedSwiftMap{m, 0}
+	In    chan WrappedSwiftMap
 }
 
 func NewConnectionFamily() *ConnectionFamily {
 
 	family := ConnectionFamily{
 		conns: make(map[string]*websocket.Conn),
-		In:    make(chan SwiftMap),
+		In:    make(chan WrappedSwiftMap),
 	}
 
 	go func() {
 		for update := range family.In {
-			// encoded := EncodeWireMessage("yupdate", NewWrappedSwiftMap(update))
 			encoded := EncodeWireMessage("yupdate", update)
 			for _, conn := range family.conns {
-				conn.WriteMessage(websocket.TextMessage, encoded)
+				conn.SetWriteDeadline(time.Now().Add(500 * time.Millisecond))
+				if writer, err := conn.NextWriter(websocket.TextMessage); err == nil {
+					writer.Write(encoded)
+				}
 			}
 		}
 	}()

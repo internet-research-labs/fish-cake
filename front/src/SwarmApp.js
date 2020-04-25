@@ -160,6 +160,7 @@ export class SwarmApp {
 
   // UpdateSwifts
   updateSwifts(swifts) {
+
     Object.keys(swifts).forEach(id => {
       let swift = swifts[id];
       let name = "SWIFT:"+id;
@@ -170,6 +171,7 @@ export class SwarmApp {
         m.name = name;
         this.scene.add(m);
       }
+
       m.lookAt(x,y, z);
       m.position.set(x, y, z);
     });
@@ -179,7 +181,8 @@ export class SwarmApp {
   update(params) {
     this.needsUpdate = false;
 
-    let t = new Date()/10000.0;
+    // let t = new Date()/10000.0;
+    let t = 121209;
     let r = 20.0;
 
     let x = r*Math.cos(t);

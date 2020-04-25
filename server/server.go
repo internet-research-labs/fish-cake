@@ -31,7 +31,7 @@ type Server struct {
 func (self *Server) SocketHandler() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// Upgrade to a websocket connection
+		// grade to a websocket connection
 		conn, _ := upgrader.Upgrade(w, r, nil)
 
 		// Create a new random ship
@@ -115,7 +115,10 @@ func NewRandomServer(n int, static string) Server {
 }
 
 // upgrader adds websocket support
-var upgrader = websocket.Upgrader{}
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024 * 8,
+	WriteBufferSize: 1024 * 8,
+}
 
 // Listen for connections
 func (self *Server) Listen(port int) {

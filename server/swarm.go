@@ -24,11 +24,17 @@ func (self *Swift) Steal(rhs *Swift) {
 // SwiftMap is the standard collection for swifts
 type SwiftMap map[uint]*Swift
 
+type WrappedSwiftMap struct {
+	Map    *SwiftMap `json:"map"`
+	Length int       `json:"length"`
+	Tick   int64     `json:"tick"`
+}
+
 // SwiftZone keeps track of all the swifts, and exposes a channel of updates
 type SwiftZone struct {
-	id      uint            `json:"id"`
-	swifts  map[uint]*Swift `json:"swifts"`
-	channel chan SwiftMap   `json:"channel"`
+	id      uint                 `json:"id"`
+	swifts  map[uint]*Swift      `json:"swifts"`
+	channel chan WrappedSwiftMap `json:"channel"`
 	ticker  *time.Ticker
 
 	// swarming properties
@@ -45,7 +51,7 @@ type SwiftZone struct {
 func NewSwiftZone(a, b, c float64) *SwiftZone {
 	zone := SwiftZone{
 		swifts:  make(map[uint]*Swift),
-		channel: make(chan SwiftMap),
+		channel: make(chan WrappedSwiftMap),
 
 		// Swarm properties
 		Attraction: a,
@@ -85,7 +91,7 @@ func (self *SwiftZone) Start(n time.Duration) {
 	log.Println("SwiftZone.Start()")
 	self.ticker = time.NewTicker(n)
 	go func() {
-		for _ = range self.ticker.C {
+		for {
 			self.tick()
 		}
 	}()
@@ -157,6 +163,7 @@ func (self *SwiftZone) getUpdatedPositions() map[uint]Swift {
 			Dir: dir,
 		}
 	}
+
 	return swifts
 }
 
@@ -204,7 +211,13 @@ func (self *SwiftZone) tick() {
 		self.wrap(s)
 	}
 
-	self.channel <- self.GetNear(Vector3{0., 0., 0.}, 16.0)
+	swifts := self.GetNear(Vector3{0., 0., 0.}, 16.0)
+
+	self.channel <- WrappedSwiftMap{
+		&swifts,
+		len(swifts),
+		self.Ticks,
+	}
 	self.Ticks++
 }
 

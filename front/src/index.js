@@ -46,19 +46,25 @@ function svvarm(id) {
     console.log(ev);
   });
 
+
+  let LAST_TICK = 0;
+
   // Message
   socket.addEventListener('message', function (ev) {
-    // console.log(Gap());
 
     let data = JSON.parse(ev.data);
-    let ships = data.ships;
     let type = data.type || data.Type;
 
     // Switch on this
     switch (type) {
       case "yupdate":
-        // console.log(data.blob);
-        app.updateSwifts(data.blob);
+
+        if (data.blob.tick-LAST_TICK != 1) {
+          console.log("TICK MISMATCH:", data.blob.tick, LAST_TICK);
+        }
+
+        LAST_TICK = data.blob.tick;
+        app.updateSwifts(data.blob.map);
         app.update();
         app.draw();
     }
