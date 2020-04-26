@@ -76,14 +76,13 @@ func (game *GameOfLife) Tick() {
 			var val int
 			alive := game.Cells[i][j] == 1
 
-			if alive {
-				if count == 2 || count == 3 {
-					val = 1
-				}
-			} else {
-				if count == 3 {
-					val = 1
-				}
+			switch {
+			case alive && (count == 2 || count == 3):
+				val = 1
+			case !alive && count == 3:
+				val = 1
+			default:
+				val = 0
 			}
 
 			board[i][j] = val
