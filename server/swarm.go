@@ -14,17 +14,6 @@ type Swift struct {
 	Dir Vector3 `json:"dir"`
 }
 
-func (self *Swift) Steal(rhs *Swift) {
-	// Update position
-	self.Pos.X = rhs.Pos.X
-	self.Pos.Y = rhs.Pos.Y
-	self.Pos.Z = rhs.Pos.Z
-
-	self.Dir.X = rhs.Pos.X
-	self.Dir.Y = rhs.Pos.Y
-	self.Dir.Z = rhs.Pos.Z
-}
-
 // SwiftMap is the standard collection for swifts
 type SwiftMap map[uint]*Swift
 
