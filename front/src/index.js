@@ -27,7 +27,36 @@ let Gap = (function () {
 }())
 
 
+function setupWebsocket(path) {
+
+  let url = "ws://" + location.host + "/" + path;
+
+  console.log("Connecting to", url);
+
+  socket = new WebSocket(url);
+
+  socket.addEventListener("open", function (ev) {
+  });
+
+  socket.addEventListener("close", function (ev) {
+  });
+
+  socket.addEventListener("message", function (ev) {
+    console.log(ev.data);
+  });
+}
+
+
 function svvarm(id) {
+
+
+  // setupWebsocket("whatever");
+  // return;
+
+
+  // I never pay attention
+
+
   let app = new SwarmApp({
     id: id,
     state: STATE,
@@ -48,9 +77,15 @@ function svvarm(id) {
 
 
   let LAST_TICK = 0;
+  let PROCESSING = false;
 
   // Message
   socket.addEventListener('message', function (ev) {
+
+    if (PROCESSING) {
+      console.log("Returning early because we're processing");
+      return;
+    }
 
     let data = JSON.parse(ev.data);
     let type = data.type || data.Type;
@@ -58,6 +93,8 @@ function svvarm(id) {
     // Switch on this
     switch (type) {
       case "yupdate":
+
+        PROCESSING = true;
 
         if (data.blob.tick-LAST_TICK != 1) {
           console.log("TICK MISMATCH:", data.blob.tick, LAST_TICK);
@@ -67,6 +104,8 @@ function svvarm(id) {
         app.updateSwifts(data.blob.map);
         app.update();
         app.draw();
+
+        PROCESSING = false;
     }
   });
 
@@ -84,7 +123,7 @@ function updateSwarm(attraction, repulsion, alignment) {
   }));
 }
 
-function lezgo(id) {
+function nvm(id) {
 
   let app = new PlanetApp({
     id: id,
@@ -113,6 +152,12 @@ function lezgo(id) {
 
     // Message
     socket.addEventListener('message', function (ev) {
+
+      if (PROCESSING) {
+        console.log("Exiting early because we're still processing");
+        return;
+      }
+
       let data = JSON.parse(ev.data);
       let ships = data.ships;
       let type = data.type || data.Type;
@@ -146,15 +191,16 @@ function lezgo(id) {
 
   // Render loop
   (function loop() {
-    app.update();
-    app.draw();
-    requestAnimationFrame(loop);
+    // requestAnimationFrame(loop);
   }());
 
   // Things that you might want later
   return [
     app,
   ];
+}
+
+function lezgo(id) {
 }
 
 export {

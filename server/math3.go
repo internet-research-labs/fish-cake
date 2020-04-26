@@ -30,6 +30,13 @@ func (self *Vector3) Normalized() Vector3 {
 	return Scale(*self, Norm(*self))
 }
 
+func (p *Vector3) Normalize() {
+	n := Norm(*p)
+	p.X /= n
+	p.Y /= n
+	p.Z /= n
+}
+
 // Return norm of a point
 func Norm(p Vector3) float64 {
 	return math.Sqrt(p.X*p.X + p.Y*p.Y + p.Z*p.Z)

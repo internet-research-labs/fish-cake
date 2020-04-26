@@ -172,8 +172,12 @@ export class SwarmApp {
         this.scene.add(m);
       }
 
-      m.lookAt(x,y, z);
       m.position.set(x, y, z);
+      m.lookAt(
+        x + swift.dir.x,
+        y + swift.dir.y,
+        z + swift.dir.z,
+      );
     });
   }
 

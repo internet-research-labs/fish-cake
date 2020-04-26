@@ -19,6 +19,10 @@ func (self *Swift) Steal(rhs *Swift) {
 	self.Pos.X = rhs.Pos.X
 	self.Pos.Y = rhs.Pos.Y
 	self.Pos.Z = rhs.Pos.Z
+
+	self.Dir.X = rhs.Pos.X
+	self.Dir.Y = rhs.Pos.Y
+	self.Dir.Z = rhs.Pos.Z
 }
 
 // SwiftMap is the standard collection for swifts
@@ -108,12 +112,10 @@ func (self *SwiftZone) Stop() {
 func (self *SwiftZone) GetForce(swift, actor *Swift) Vector3 {
 
 	d := Distance(swift.Pos, actor.Pos)
-	dir := Sub(actor.Pos, swift.Pos)
-	mag := self.Attraction/d/d - self.Repulsion/d/d/d
 
-	if d < 0.01 {
-		return Vector3{0.0, 0.0, 0.0}
-	}
+	dir := Sub(actor.Pos, swift.Pos)
+
+	mag := self.Attraction/d/d - self.Repulsion/d/d/d
 
 	return Scale(dir, mag)
 }
@@ -124,9 +126,9 @@ func (self *Vector3) Copy() Vector3 {
 
 // getMapOfNewSwifts returns a map of swifts
 // NOTE: ...
-func (self *SwiftZone) getUpdatedPositions() map[uint]Swift {
+func (self *SwiftZone) getUpdatedPositions() map[uint]*Swift {
 
-	swifts := make(map[uint]Swift)
+	swifts := make(map[uint]*Swift)
 
 	for id, swift := range self.swifts {
 
@@ -137,10 +139,13 @@ func (self *SwiftZone) getUpdatedPositions() map[uint]Swift {
 		// For everyone near enough to influence...
 		// Let's compute the overall force
 		for n_id, n := range neighbors {
+
+			// Ignore self
 			if id == n_id {
 				continue
 			}
 
+			// Get  distance from this nearby thing
 			d := Distance(swift.Pos, n.Pos)
 
 			// Get overall desired position to get near
@@ -148,16 +153,18 @@ func (self *SwiftZone) getUpdatedPositions() map[uint]Swift {
 			influence = Add(influence, force)
 
 			if 0.1 < d && d < 0.9 {
-				aligner = Add(aligner, n.Dir)
+				aligner = Add(aligner, Scale(n.Dir, 1.0/float64(len(neighbors))))
 			}
 		}
 
-		aligner = aligner
-		dir := Add(aligner, influence)
-		// dir = Vector3{0.0, 0.0, 0.1}
+		aligner.Normalize()
+		// dir := Add(aligner, influence)
+		dir := swift.Dir
+		dir = Add(dir, influence)
+		dir = Scale(Add(dir, RandomVector3(-0.001, 0.001)), 0.3)
 
 		// Attach swift to it
-		swifts[id] = Swift{
+		swifts[id] = &Swift{
 			Id:  id,
 			Pos: Add(swift.Pos, dir),
 			Dir: dir,
@@ -200,16 +207,7 @@ func (self *SwiftZone) tick() {
 	defer self.mux.Unlock()
 
 	// Get set of updated positions per id
-	updateMap := self.getUpdatedPositions()
-
-	//
-	for id, s := range self.swifts {
-		newSwift, found := updateMap[id]
-		if found {
-			s.Steal(&newSwift)
-		}
-		self.wrap(s)
-	}
+	self.swifts = self.getUpdatedPositions()
 
 	swifts := self.GetNear(Vector3{0., 0., 0.}, 16.0)
 
