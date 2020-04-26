@@ -1,7 +1,6 @@
 package server
 
 import (
-	"log"
 	"net/http"
 	"sync"
 
@@ -29,7 +28,6 @@ func (family *ConnectionFamily) Remove(conn *websocket.Conn) {
 }
 
 func (family *ConnectionFamily) Write(msg []byte) {
-	log.Printf("Writing out to %v connections", len(family.conns))
 	for conn := range family.conns {
 		conn.WriteMessage(websocket.TextMessage, msg)
 	}
@@ -48,8 +46,6 @@ type Broadcaster struct {
 // Handler returns a websocket http handler  which receives any message sent to In().
 func (caster *Broadcaster) Handler() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-
-		log.Println("Incoming connection!")
 
 		conn, _ := upgrader.Upgrade(w, r, nil)
 		defer conn.Close()
